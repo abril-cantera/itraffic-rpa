@@ -19,17 +19,6 @@
   },
   "routes": [
     {
-      "route": "/*",
-      "headers": {
-        "Access-Control-Allow-Origin": "*",
-        "Access-Control-Allow-Methods": "GET, POST, PUT, DELETE, OPTIONS",
-        "Access-Control-Allow-Headers": "Content-Type, Authorization",
-        "X-Content-Type-Options": "nosniff",
-        "X-Frame-Options": "ALLOWALL",
-        "Cache-Control": "no-cache, no-store, must-revalidate"
-      }
-    },
-    {
       "route": "/manifest.xml",
       "headers": {
         "Content-Type": "application/xml",
@@ -40,21 +29,35 @@
     {
       "route": "/assets/*",
       "headers": {
-        "Cache-Control": "public, max-age=31536000, immutable"
+        "Cache-Control": "public, max-age=31536000, immutable",
+        "Access-Control-Allow-Origin": "*"
       }
     },
     {
       "route": "/*.js",
       "headers": {
         "Content-Type": "application/javascript",
-        "Cache-Control": "public, max-age=86400"
+        "Cache-Control": "public, max-age=86400",
+        "Access-Control-Allow-Origin": "*"
       }
     },
     {
       "route": "/*.css",
       "headers": {
         "Content-Type": "text/css",
-        "Cache-Control": "public, max-age=86400"
+        "Cache-Control": "public, max-age=86400",
+        "Access-Control-Allow-Origin": "*"
+      }
+    },
+    {
+      "route": "/*",
+      "headers": {
+        "Access-Control-Allow-Origin": "*",
+        "Access-Control-Allow-Methods": "GET, POST, PUT, DELETE, OPTIONS",
+        "Access-Control-Allow-Headers": "Content-Type, Authorization",
+        "X-Content-Type-Options": "nosniff",
+        "X-Frame-Options": "ALLOWALL",
+        "Cache-Control": "no-cache, no-store, must-revalidate"
       }
     }
   ],
