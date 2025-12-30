@@ -4,7 +4,7 @@ const path = require('path');
 const fs = require('fs');
 
 const urlDev = 'https://localhost:3000/';
-const urlProd = 'https://app-itraffic-rpa.whiteflower-4df565a8.eastus2.azurecontainerapps.io/api/';
+const urlProd = 'https://happy-flower-09b6bd81e.4.azurestaticapps.net/';
 
 // Generate self-signed certificate for local development if not exists
 function getDevServerHttpsConfig() {

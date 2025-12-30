@@ -6,11 +6,11 @@
   <DefaultLocale>es-ES</DefaultLocale>
   <DisplayName DefaultValue="Email Classifier" />
   <Description DefaultValue="Clasificación automática de correos con IA" />
-  <IconUrl DefaultValue="https://app-itraffic-rpa.whiteflower-4df565a8.eastus2.azurecontainerapps.io/assets/icon-32.png" />
-  <HighResolutionIconUrl DefaultValue="https://app-itraffic-rpa.whiteflower-4df565a8.eastus2.azurecontainerapps.io/assets/icon-80.png" />
-  <SupportUrl DefaultValue="https://app-itraffic-rpa.whiteflower-4df565a8.eastus2.azurecontainerapps.io" />
+  <IconUrl DefaultValue="https://happy-flower-09b6bd81e.4.azurestaticapps.net/assets/icon-32.png" />
+  <HighResolutionIconUrl DefaultValue="https://happy-flower-09b6bd81e.4.azurestaticapps.net/assets/icon-80.png" />
+  <SupportUrl DefaultValue="https://happy-flower-09b6bd81e.4.azurestaticapps.net" />
   <AppDomains>
-    <AppDomain>https://app-itraffic-rpa.whiteflower-4df565a8.eastus2.azurecontainerapps.io</AppDomain>
+    <AppDomain>https://happy-flower-09b6bd81e.4.azurestaticapps.net</AppDomain>
     <AppDomain>https://login.microsoftonline.com</AppDomain>
   </AppDomains>
   <Hosts>
@@ -24,7 +24,7 @@
   <FormSettings>
     <Form xsi:type="ItemRead">
       <DesktopSettings>
-        <SourceLocation DefaultValue="https://app-itraffic-rpa.whiteflower-4df565a8.eastus2.azurecontainerapps.io/taskpane.html" />
+        <SourceLocation DefaultValue="https://happy-flower-09b6bd81e.4.azurestaticapps.net/taskpane.html" />
         <RequestedHeight>450</RequestedHeight>
       </DesktopSettings>
     </Form>
@@ -71,12 +71,12 @@
     </Hosts>
     <Resources>
       <bt:Images>
-        <bt:Image id="Icon.16x16" DefaultValue="https://app-itraffic-rpa.whiteflower-4df565a8.eastus2.azurecontainerapps.io/assets/icon-16.png" />
-        <bt:Image id="Icon.32x32" DefaultValue="https://app-itraffic-rpa.whiteflower-4df565a8.eastus2.azurecontainerapps.io/assets/icon-32.png" />
-        <bt:Image id="Icon.80x80" DefaultValue="https://app-itraffic-rpa.whiteflower-4df565a8.eastus2.azurecontainerapps.io/assets/icon-80.png" />
+        <bt:Image id="Icon.16x16" DefaultValue="https://happy-flower-09b6bd81e.4.azurestaticapps.net/assets/icon-16.png" />
+        <bt:Image id="Icon.32x32" DefaultValue="https://happy-flower-09b6bd81e.4.azurestaticapps.net/assets/icon-32.png" />
+        <bt:Image id="Icon.80x80" DefaultValue="https://happy-flower-09b6bd81e.4.azurestaticapps.net/assets/icon-80.png" />
       </bt:Images>
       <bt:Urls>
-        <bt:Url id="Taskpane.Url" DefaultValue="https://app-itraffic-rpa.whiteflower-4df565a8.eastus2.azurecontainerapps.io/taskpane.html" />
+        <bt:Url id="Taskpane.Url" DefaultValue="https://happy-flower-09b6bd81e.4.azurestaticapps.net/taskpane.html" />
       </bt:Urls>
       <bt:ShortStrings>
         <bt:String id="GroupLabel" DefaultValue="Clasificador Email" />
