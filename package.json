@@ -1,0 +1,47 @@
+{
+  "name": "outlook-email-classifier-addin",
+  "version": "1.0.0",
+  "description": "Outlook Add-in for automatic email classification with AI",
+  "main": "dist/taskpane.js",
+  "scripts": {
+    "build": "webpack --mode production",
+    "build:dev": "webpack --mode development",
+    "dev": "webpack serve --mode development",
+    "dev:full": "concurrently \"npm run dev\" \"npm run backend:start\"",
+    "start": "office-addin-debugging start manifest.xml desktop",
+    "start:local": "office-addin-debugging start manifest-local.xml desktop",
+    "stop": "office-addin-debugging stop manifest.xml",
+    "validate": "office-addin-manifest validate manifest.xml",
+    "validate:local": "office-addin-manifest validate manifest-local.xml",
+    "lint": "eslint src --ext .ts,.tsx",
+    "lint:fix": "eslint src --ext .ts,.tsx --fix",
+    "clean": "rimraf dist",
+    "certs": "office-addin-dev-certs install",
+    "backend:start": "cd ../backend && func start",
+    "deploy": "npm run build && cd ../backend && copy-addin && func azure functionapp publish aymara-email-classifier-api --javascript",
+    "copy-to-backend": "xcopy /E /Y /I dist ..\\backend\\public"
+  },
+  "devDependencies": {
+    "@types/node": "^20.10.0",
+    "@types/office-js": "^1.0.300",
+    "concurrently": "^8.2.2",
+    "copy-webpack-plugin": "^11.0.0",
+    "css-loader": "^6.8.1",
+    "file-loader": "^6.2.0",
+    "html-webpack-plugin": "^5.6.0",
+    "office-addin-debugging": "^5.0.13",
+    "office-addin-dev-certs": "^1.13.1",
+    "office-addin-lint": "^2.3.1",
+    "office-addin-manifest": "^1.13.3",
+    "source-map-loader": "^4.0.1",
+    "style-loader": "^3.3.3",
+    "ts-loader": "^9.5.1",
+    "typescript": "^5.3.3",
+    "webpack": "^5.89.0",
+    "webpack-cli": "^5.1.4",
+    "webpack-dev-server": "^4.15.1"
+  },
+  "engines": {
+    "node": ">=20.0.0"
+  }
+}

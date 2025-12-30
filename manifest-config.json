@@ -1,0 +1,22 @@
+{
+  "development": {
+    "clientId": "8b5f3cbc-5406-42aa-b6af-c3d398b1684e",
+    "domain": "localhost:3000",
+    "resource": "api://localhost:3000/8b5f3cbc-5406-42aa-b6af-c3d398b1684e",
+    "scope": "api://localhost:3000/8b5f3cbc-5406-42aa-b6af-c3d398b1684e/access_as_user",
+    "appDomains": [
+      "https://login.microsoftonline.com",
+      "https://localhost:3000"
+    ]
+  },
+  "production": {
+    "clientId": "8b5f3cbc-5406-42aa-b6af-c3d398b1684e",
+    "domain": "outlook-classifier-api.azurewebsites.net",
+    "resource": "api://outlook-classifier-api.azurewebsites.net/8b5f3cbc-5406-42aa-b6af-c3d398b1684e",
+    "scope": "api://outlook-classifier-api.azurewebsites.net/8b5f3cbc-5406-42aa-b6af-c3d398b1684e/access_as_user",
+    "appDomains": [
+      "https://login.microsoftonline.com",
+      "https://outlook-classifier-api.azurewebsites.net"
+    ]
+  }
+}
