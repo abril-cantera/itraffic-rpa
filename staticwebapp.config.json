@@ -1,13 +1,8 @@
 {
   "navigationFallback": {
-<<<<<<< Updated upstream
     "rewrite": "/taskpane.html",
     "exclude": [
       "/index.html",
-=======
-    "rewrite": "/index.html",
-    "exclude": [
->>>>>>> Stashed changes
       "/assets/*",
       "/taskpane.html",
       "/commands.html",
@@ -24,20 +19,6 @@
   },
   "routes": [
     {
-<<<<<<< Updated upstream
-=======
-      "route": "/*",
-      "headers": {
-        "Access-Control-Allow-Origin": "*",
-        "Access-Control-Allow-Methods": "GET, POST, PUT, DELETE, OPTIONS",
-        "Access-Control-Allow-Headers": "Content-Type, Authorization",
-        "X-Content-Type-Options": "nosniff",
-        "X-Frame-Options": "ALLOWALL",
-        "Cache-Control": "no-cache, no-store, must-revalidate"
-      }
-    },
-    {
->>>>>>> Stashed changes
       "route": "/manifest.xml",
       "headers": {
         "Content-Type": "application/xml",
@@ -48,31 +29,22 @@
     {
       "route": "/assets/*",
       "headers": {
-<<<<<<< Updated upstream
         "Cache-Control": "public, max-age=31536000, immutable",
         "Access-Control-Allow-Origin": "*"
-=======
-        "Cache-Control": "public, max-age=31536000, immutable"
->>>>>>> Stashed changes
       }
     },
     {
       "route": "/*.js",
       "headers": {
         "Content-Type": "application/javascript",
-<<<<<<< Updated upstream
         "Cache-Control": "public, max-age=86400",
         "Access-Control-Allow-Origin": "*"
-=======
-        "Cache-Control": "public, max-age=86400"
->>>>>>> Stashed changes
       }
     },
     {
       "route": "/*.css",
       "headers": {
         "Content-Type": "text/css",
-<<<<<<< Updated upstream
         "Cache-Control": "public, max-age=86400",
         "Access-Control-Allow-Origin": "*"
       }
@@ -86,9 +58,6 @@
         "X-Content-Type-Options": "nosniff",
         "X-Frame-Options": "ALLOWALL",
         "Cache-Control": "no-cache, no-store, must-revalidate"
-=======
-        "Cache-Control": "public, max-age=86400"
->>>>>>> Stashed changes
       }
     }
   ],
