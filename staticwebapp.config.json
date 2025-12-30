@@ -1,7 +1,8 @@
 {
   "navigationFallback": {
-    "rewrite": "/index.html",
+    "rewrite": "/taskpane.html",
     "exclude": [
+      "/index.html",
       "/assets/*",
       "/taskpane.html",
       "/commands.html",
