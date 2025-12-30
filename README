@@ -1,0 +1,11 @@
+# Outlook Add-in - iTraffic RPA
+
+Outlook Add-in para crear reservas en iTraffic automáticamente.
+
+## Setup
+
+npm install
+npm run build
+npm start## Deploy
+
+Push a GitHub → Azure Static Web Apps despliega automáticamente.
