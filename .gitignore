@@ -2,7 +2,7 @@
 node_modules/
 
 # Build outputs
-dist/
+# dist/  # Temporalmente habilitado para desplegar a producción
 build/
 
 # Environment variables
