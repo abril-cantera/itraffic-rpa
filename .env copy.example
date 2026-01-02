@@ -1,6 +1,0 @@
-# Backend RPA
-REACT_APP_RPA_API_URL=https://app-itraffic-rpa.whiteflower-4df565a8.eastus2.azurecontainerapps.io
-
-# Azure AD
-REACT_APP_AZURE_CLIENT_ID=6637590b-a6a4-4e53-b429-a766c66f03c3
-REACT_APP_AZURE_TENANT_ID=c556f158-baa4-43a2-8dc7-a1619672abff

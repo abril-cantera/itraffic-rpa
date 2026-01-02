@@ -14,7 +14,7 @@ const isDevelopment = window.location.hostname === 'localhost';
 
 // Backend URLs
 const LOCAL_BACKEND = 'http://localhost:7071';
-const PROD_BACKEND = 'https://app-itraffic-rpa.whiteflower-4df565a8.eastus2.azurecontainerapps.io';
+const PROD_BACKEND = 'https://happy-flower-09b6bd81e.4.azurestaticapps.net';
 
 export const config: Config = {
   // Local development uses local backend for API calls
