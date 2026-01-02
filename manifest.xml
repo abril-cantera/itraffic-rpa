@@ -9,10 +9,15 @@
   <IconUrl DefaultValue="https://happy-flower-09b6bd81e.4.azurestaticapps.net/assets/icon-32.png" />
   <HighResolutionIconUrl DefaultValue="https://happy-flower-09b6bd81e.4.azurestaticapps.net/assets/icon-80.png" />
   <SupportUrl DefaultValue="https://happy-flower-09b6bd81e.4.azurestaticapps.net" />
-  <AppDomains>
-    <AppDomain>https://happy-flower-09b6bd81e.4.azurestaticapps.net</AppDomain>
-    <AppDomain>https://login.microsoftonline.com</AppDomain>
-  </AppDomains>
+<AppDomains>
+  <AppDomain>https://happy-flower-09b6bd81e.4.azurestaticapps.net</AppDomain>
+
+  <AppDomain>https://login.microsoftonline.com</AppDomain>
+  <AppDomain>https://login.live.com</AppDomain>
+  <AppDomain>https://aadcdn.msftauth.net</AppDomain>
+  <AppDomain>https://secure.aadcdn.microsoftonline-p.com</AppDomain>
+</AppDomains>
+
   <Hosts>
     <Host Name="Mailbox" />
   </Hosts>
