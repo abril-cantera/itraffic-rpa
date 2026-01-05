@@ -1555,7 +1555,7 @@ async function completeRegistrationWithAuthorizationCode(
       );
     }
 
-    throw new Error(`No se pudo completar la autenticación: ${errorData.error || redeemResponse.statusText}`);
+    throw new Error(`No se pudo completar la autenticación: ${JSON.stringify(errorData)}`);
   }
 
   const redeemData = await redeemResponse.json();
