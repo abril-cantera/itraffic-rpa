@@ -36,7 +36,7 @@ function getDevServerHttpsConfig() {
   
   // Use default self-signed cert from webpack
   console.log('📜 Using webpack default certificates');
-  return true;
+  return {};
 }
 
 module.exports = async (env, options) => {

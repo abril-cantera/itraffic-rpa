@@ -1625,7 +1625,7 @@ async function completeLegacyRegistration(messageData: any, currentOutlookEmail:
 
   if (!registerResponse.ok) {
     const errorData = await registerResponse.json().catch(() => ({ error: 'Unknown error' }));
-    throw new Error(`Registration failed: ${errorData.error || registerResponse.statusText}`);
+    throw new Error(`Registration failed: ${ registerResponse.statusText || errorData.error}`);
   }
 
   await persistUserSession(messageData.userId, messageData.email);
