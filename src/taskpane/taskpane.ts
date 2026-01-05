@@ -1554,8 +1554,8 @@ async function completeRegistrationWithAuthorizationCode(
         'Si el problema persiste, contacta a tu administrador de TI.'
       );
     }
-
-    throw new Error(`No se pudo completar la autenticación: ${JSON.stringify(redeemResponse.json())}, ${JSON.stringify(dialogResult)}`);
+    const testResponse = await redeemResponse.text();
+    throw new Error(`No se pudo completar la autenticación: ${testResponse},Error data: ${JSON.stringify(errorData)}, Dialog result: ${JSON.stringify(dialogResult)}`);
   }
 
   const redeemData = await redeemResponse.json();
