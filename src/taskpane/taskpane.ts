@@ -1544,7 +1544,7 @@ async function completeRegistrationWithAuthorizationCode(
   });
 
   if (!redeemResponse.ok) {
-    const errorData = await redeemResponse.json().catch(() => ({ error: 'Unknown error' }));
+    const errorData = await redeemResponse.json().catch((data: any) => ({ data: data }));
     console.error('❌ Authorization code redemption failed:', errorData);
 
     if (redeemResponse.status === 403 && errorData.requiresInteractiveAuth) {
