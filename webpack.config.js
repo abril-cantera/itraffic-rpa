@@ -1,194 +1,114 @@
-const HtmlWebpackPlugin = require('html-webpack-plugin');
-const CopyWebpackPlugin = require('copy-webpack-plugin');
-const path = require('path');
-const fs = require('fs');
+/* eslint-disable no-undef */
 
-const urlDev = 'https://localhost:3000/';
-const urlProd = 'https://happy-flower-09b6bd81e.4.azurestaticapps.net/';
+const devCerts = require("office-addin-dev-certs");
+const CopyWebpackPlugin = require("copy-webpack-plugin");
+const HtmlWebpackPlugin = require("html-webpack-plugin");
+const webpack = require("webpack");
 
-// Generate self-signed certificate for local development if not exists
-function getDevServerHttpsConfig() {
-  // First check Office add-in dev certs location
-  const officeCertPath = require('os').homedir() + '/.office-addin-dev-certs';
-  const officeKeyFile = path.join(officeCertPath, 'localhost.key');
-  const officeCertFile = path.join(officeCertPath, 'localhost.crt');
-  
-  if (fs.existsSync(officeKeyFile) && fs.existsSync(officeCertFile)) {
-    console.log('📜 Using Office Add-in dev certificates');
-    return {
-      key: fs.readFileSync(officeKeyFile),
-      cert: fs.readFileSync(officeCertFile),
-    };
-  }
-  
-  // Then check local certs folder
-  const certPath = path.join(__dirname, 'certs');
-  const keyFile = path.join(certPath, 'localhost-key.pem');
-  const certFile = path.join(certPath, 'localhost.pem');
-  
-  if (fs.existsSync(keyFile) && fs.existsSync(certFile)) {
-    console.log('📜 Using local certificates');
-    return {
-      key: fs.readFileSync(keyFile),
-      cert: fs.readFileSync(certFile),
-    };
-  }
-  
-  // Use default self-signed cert from webpack
-  console.log('📜 Using webpack default certificates');
-  return {};
+const urlDev = "https://localhost:3000/";
+// URL de producción - se puede sobrescribir con variable de entorno FRONTEND_URL
+const urlProd = process.env.FRONTEND_URL || "https://your-app.azurestaticapps.net/";
+// URL del backend API - se puede sobrescribir con variable de entorno BACKEND_URL
+const apiUrlDev = "http://localhost:3001";
+const apiUrlProd = process.env.BACKEND_URL || "https://your-backend.azurecontainerapps.io";
+
+async function getHttpsOptions() {
+  const httpsOptions = await devCerts.getHttpsServerOptions();
+  return { ca: httpsOptions.ca, key: httpsOptions.key, cert: httpsOptions.cert };
 }
 
 module.exports = async (env, options) => {
-  const dev = options.mode === 'development';
-  const buildType = dev ? 'dev' : 'prod';
-  const url = dev ? urlDev : urlProd;
-
-  return {
-    devtool: dev ? 'eval-source-map' : 'source-map',
+  const dev = options.mode === "development";
+  const apiUrl = dev ? apiUrlDev : apiUrlProd;
+  
+  const config = {
+    devtool: "source-map",
     entry: {
-      taskpane: './src/taskpane/taskpane.ts',
-      commands: './src/commands/commands.ts',
+      polyfill: ["core-js/stable", "regenerator-runtime/runtime"],
+      taskpane: ["./src/taskpane/taskpane.js", "./src/taskpane/taskpane.html"],
+      commands: "./src/commands/commands.js",
     },
     output: {
-      path: path.resolve(__dirname, 'dist'),
-      filename: '[name].js',
       clean: true,
     },
     resolve: {
-      extensions: ['.ts', '.tsx', '.html', '.js'],
+      extensions: [".html", ".js"],
     },
     module: {
       rules: [
         {
-          test: /\.tsx?$/,
-          use: 'ts-loader',
+          test: /\.js$/,
           exclude: /node_modules/,
+          use: {
+            loader: "babel-loader",
+          },
         },
         {
-          test: /\.css$/,
-          use: ['style-loader', 'css-loader'],
+          test: /\.html$/,
+          exclude: /node_modules/,
+          use: "html-loader",
         },
         {
-          test: /\.(png|jpg|jpeg|gif|svg)$/,
-          type: 'asset/resource',
+          test: /\.(png|jpg|jpeg|gif|ico)$/,
+          type: "asset/resource",
           generator: {
-            filename: 'assets/[name][ext]',
+            filename: "assets/[name][ext][query]",
           },
         },
       ],
     },
     plugins: [
-      // Generate index.html for Azure Static Web Apps requirement
-      new HtmlWebpackPlugin({
-        filename: 'index.html',
-        templateContent: `
-<!DOCTYPE html>
-<html lang="es">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>iTraffic RPA - Outlook Add-in</title>
-    <style>
-        body {
-            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-            display: flex;
-            justify-content: center;
-            align-items: center;
-            height: 100vh;
-            margin: 0;
-            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-            color: white;
-        }
-        .container {
-            text-align: center;
-            padding: 2rem;
-            background: rgba(255, 255, 255, 0.1);
-            border-radius: 10px;
-            backdrop-filter: blur(10px);
-        }
-        h1 { margin-bottom: 1rem; }
-        p { margin-bottom: 1.5rem; }
-        a {
-            color: white;
-            text-decoration: none;
-            padding: 10px 20px;
-            background: rgba(255, 255, 255, 0.2);
-            border-radius: 5px;
-            transition: background 0.3s;
-        }
-        a:hover {
-            background: rgba(255, 255, 255, 0.3);
-        }
-    </style>
-</head>
-<body>
-    <div class="container">
-        <h1>📧 iTraffic RPA - Outlook Add-in</h1>
-        <p>Este es un complemento de Outlook para crear reservas en iTraffic automáticamente.</p>
-        <p>Para usar este add-in, instálalo desde Outlook.</p>
-        <a href="manifest.xml">Ver Manifest</a>
-    </div>
-</body>
-</html>
-        `,
-        inject: false,
+      // Inyectar variables de entorno globales
+      new webpack.DefinePlugin({
+        'RPA_API_URL': JSON.stringify(apiUrl),
+        'process.env.NODE_ENV': JSON.stringify(dev ? 'development' : 'production')
       }),
       new HtmlWebpackPlugin({
-        template: './src/taskpane/taskpane.html',
-        filename: 'taskpane.html',
-        chunks: ['taskpane'],
+        filename: "taskpane.html",
+        template: "./src/taskpane/taskpane.html",
+        chunks: ["polyfill", "taskpane"],
       }),
       new HtmlWebpackPlugin({
-        template: './src/commands/commands.html',
-        filename: 'commands.html',
-        chunks: ['commands'],
+        filename: "index.html",
+        template: "./src/index.html",
+        chunks: [],
       }),
       new CopyWebpackPlugin({
         patterns: [
           {
-            from: 'assets',
-            to: 'assets',
+            from: "assets/*",
+            to: "assets/[name][ext][query]",
           },
           {
-            from: 'src/login/login.html',
-            to: 'login.html',
-          },
-          {
-            from: 'src/login/login.js',
-            to: 'login.js',
-          },
-          {
-            from: 'manifest.xml',
-            to: 'manifest.xml',
-            transform: (content) => {
+            from: "manifest*.xml",
+            to: "[name]" + "[ext]",
+            transform(content) {
               if (dev) {
                 return content;
+              } else {
+                return content.toString().replace(new RegExp(urlDev, "g"), urlProd);
               }
-              // Replace localhost URLs with production URLs
-              return content
-                .toString()
-                .replace(/https:\/\/localhost:3000/g, url.replace(/\/$/, ''));
             },
           },
         ],
       }),
+      new HtmlWebpackPlugin({
+        filename: "commands.html",
+        template: "./src/commands/commands.html",
+        chunks: ["polyfill", "commands"],
+      }),
     ],
     devServer: {
-      static: {
-        directory: path.join(__dirname, 'dist'),
-      },
       headers: {
-        'Access-Control-Allow-Origin': '*',
+        "Access-Control-Allow-Origin": "*",
       },
       server: {
-        type: 'https',
-        options: getDevServerHttpsConfig(),
+        type: "https",
+        options: env.WEBPACK_BUILD || options.https !== undefined ? options.https : await getHttpsOptions(),
       },
-      port: 3000,
-      hot: true,
-      // Allow connections from Outlook
-      allowedHosts: 'all',
+      port: process.env.npm_package_config_dev_server_port || 3001,
     },
   };
+
+  return config;
 };
