@@ -6,11 +6,11 @@
   <DefaultLocale>en-US</DefaultLocale>
   <DisplayName DefaultValue="iTraffic RPA Extractor"/>
   <Description DefaultValue="Extrae datos de correos y crea reservas automáticamente en iTraffic"/>
-  <IconUrl DefaultValue="https://gentle-ground-0e6ae2a1e.1.azurestaticapps.net/assets/icon-64.png"/>
-  <HighResolutionIconUrl DefaultValue="https://gentle-ground-0e6ae2a1e.1.azurestaticapps.net/assets/icon-128.png"/>
+  <IconUrl DefaultValue="https://happy-flower-09b6bd81e.4.azurestaticapps.net/assets/icon-64.png"/>
+  <HighResolutionIconUrl DefaultValue="https://happy-flower-09b6bd81e.4.azurestaticapps.net/assets/icon-128.png"/>
   <SupportUrl DefaultValue="https://github.com/abril-cantera/Add-In-RPA"/>
   <AppDomains>
-    <AppDomain>https://gentle-ground-0e6ae2a1e.1.azurestaticapps.net</AppDomain>
+    <AppDomain>https://happy-flower-09b6bd81e.4.azurestaticapps.net</AppDomain>
   </AppDomains>
   <Hosts>
     <Host Name="Mailbox"/>
@@ -23,7 +23,7 @@
   <FormSettings>
     <Form xsi:type="ItemRead">
       <DesktopSettings>
-        <SourceLocation DefaultValue="https://gentle-ground-0e6ae2a1e.1.azurestaticapps.net/taskpane.html"/>
+        <SourceLocation DefaultValue="https://happy-flower-09b6bd81e.4.azurestaticapps.net/taskpane.html"/>
         <RequestedHeight>250</RequestedHeight>
       </DesktopSettings>
     </Form>
@@ -70,13 +70,13 @@
     </Hosts>
     <Resources>
       <bt:Images>
-        <bt:Image id="Icon.16x16" DefaultValue="https://gentle-ground-0e6ae2a1e.1.azurestaticapps.net/assets/icon-16.png"/>
-        <bt:Image id="Icon.32x32" DefaultValue="https://gentle-ground-0e6ae2a1e.1.azurestaticapps.net/assets/icon-32.png"/>
-        <bt:Image id="Icon.80x80" DefaultValue="https://gentle-ground-0e6ae2a1e.1.azurestaticapps.net/assets/icon-80.png"/>
+        <bt:Image id="Icon.16x16" DefaultValue="https://happy-flower-09b6bd81e.4.azurestaticapps.net/assets/icon-16.png"/>
+        <bt:Image id="Icon.32x32" DefaultValue="https://happy-flower-09b6bd81e.4.azurestaticapps.net/assets/icon-32.png"/>
+        <bt:Image id="Icon.80x80" DefaultValue="https://happy-flower-09b6bd81e.4.azurestaticapps.net/assets/icon-80.png"/>
       </bt:Images>
       <bt:Urls>
-        <bt:Url id="Commands.Url" DefaultValue="https://gentle-ground-0e6ae2a1e.1.azurestaticapps.net/commands.html"/>
-        <bt:Url id="Taskpane.Url" DefaultValue="https://gentle-ground-0e6ae2a1e.1.azurestaticapps.net/taskpane.html"/>
+        <bt:Url id="Commands.Url" DefaultValue="https://happy-flower-09b6bd81e.4.azurestaticapps.net/commands.html"/>
+        <bt:Url id="Taskpane.Url" DefaultValue="https://happy-flower-09b6bd81e.4.azurestaticapps.net/taskpane.html"/>
       </bt:Urls>
       <bt:ShortStrings>
         <bt:String id="GroupLabel" DefaultValue="Extractor RPA"/>
