@@ -5,7 +5,7 @@ Write-Host "🏗️  Construyendo Add-in para Producción..." -ForegroundColor C
 
 # URLs de producción CORREGIDAS (sin https:// duplicado)
 $env:FRONTEND_URL = "https://happy-flower-09b6bd81e.4.azurestaticapps.net"
-$env:BACKEND_URL = "https://20.3.142.67"
+$env:BACKEND_URL = "https://aymara.canterasoft.com"
 
 Write-Host ""
 Write-Host "📋 Configuración:" -ForegroundColor Yellow
