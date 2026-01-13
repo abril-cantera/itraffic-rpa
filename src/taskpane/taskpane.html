@@ -101,6 +101,38 @@
                         <option value="CLIENTE 2">Cliente 2</option>
                     </select>
                 </div>
+
+                <div class="form-group">
+                    <label>Fecha de Reserva:</label>
+                    <input type="date" id="fechaReserva">
+                </div>
+
+                <div class="form-group">
+                    <label>Fecha Fin de Tour:</label>
+                    <input type="date" id="fechaFinTour">
+                </div>
+
+                <div class="form-group">
+                    <label>Fecha de Vencimiento:</label>
+                    <input type="date" id="fechaVencimiento">
+                </div>
+
+                <div class="form-group">
+                    <label>Hotel:</label>
+                    <input type="text" id="hotel" placeholder="Nombre del hotel">
+                </div>
+
+                <!-- Sección de Servicios -->
+                <div id="serviciosSection" style="margin-top: 20px; display: none;">
+                    <h3>Servicios</h3>
+                    <div id="serviciosContainer"></div>
+                </div>
+
+                <!-- Sección de Vuelos -->
+                <div id="vuelosSection" style="margin-top: 20px; display: none;">
+                    <h3>Vuelos</h3>
+                    <div id="vuelosContainer"></div>
+                </div>
             </div>
 
             <button id="crearReserva" class="ms-Button btn-crear-reserva">
