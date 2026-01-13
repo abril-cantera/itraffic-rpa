@@ -782,11 +782,12 @@ function llenarDatosPasajeros(datosPasajeros) {
       const numero = index + 1;
       
       if (document.getElementById(`tipoPasajero_${numero}`)) {
-        // Mapear paxType de la IA a tipoPasajero del formulario
+        // Mapear passengerType o paxType de la IA a tipoPasajero del formulario
         let tipoPasajero = "";
-        if (datos.paxType === "ADU") tipoPasajero = "adulto";
-        else if (datos.paxType === "CHD") tipoPasajero = "menor";
-        else if (datos.paxType === "INF") tipoPasajero = "infante";
+        const passengerType = datos.passengerType || datos.paxType;
+        if (passengerType === "ADU") tipoPasajero = "adulto";
+        else if (passengerType === "CHD") tipoPasajero = "menor";
+        else if (passengerType === "INF") tipoPasajero = "infante";
         
         // Los valores de sex, documentType y nationality ahora vienen normalizados del backend
         // sex viene como código: "M" o "F"
@@ -797,7 +798,8 @@ function llenarDatosPasajeros(datosPasajeros) {
         document.getElementById(`nombre_${numero}`).value = datos.firstName || "";
         document.getElementById(`apellido_${numero}`).value = datos.lastName || "";
         document.getElementById(`dni_${numero}`).value = datos.documentNumber || "";
-        document.getElementById(`fechaNacimiento_${numero}`).value = datos.birthDate || "";
+        // El backend envía dateOfBirth, no birthDate
+        document.getElementById(`fechaNacimiento_${numero}`).value = datos.dateOfBirth || datos.birthDate || "";
         document.getElementById(`cuil_${numero}`).value = datos.cuilCuit || "";
         
         // Usar los códigos directamente tal como vienen del backend
@@ -820,7 +822,8 @@ function llenarDatosPasajeros(datosPasajeros) {
         }
         
         document.getElementById(`direccion_${numero}`).value = datos.direccion || "";
-        document.getElementById(`telefono_${numero}`).value = datos.telefono || "";
+        // El backend envía phoneNumber, no telefono
+        document.getElementById(`telefono_${numero}`).value = datos.phoneNumber || datos.telefono || "";
       }
     });
     
@@ -995,9 +998,239 @@ function llenarDatosReserva(datosExtraidos) {
       }
     }
     
+    // Campos adicionales de la reserva
+    // Código
+    if (document.getElementById("codigo")) {
+      document.getElementById("codigo").value = datosExtraidos.codigo || "";
+    }
+    
+    // Fecha de Reserva
+    if (document.getElementById("fechaReserva")) {
+      document.getElementById("fechaReserva").value = datosExtraidos.reservationDate || "";
+    }
+    
+    // Fecha Fin de Tour
+    if (document.getElementById("fechaFinTour")) {
+      document.getElementById("fechaFinTour").value = datosExtraidos.tourEndDate || "";
+    }
+    
+    // Fecha de Vencimiento
+    if (document.getElementById("fechaVencimiento")) {
+      document.getElementById("fechaVencimiento").value = datosExtraidos.dueDate || "";
+    }
+    
+    // Contacto
+    if (document.getElementById("contacto")) {
+      document.getElementById("contacto").value = datosExtraidos.contact || "";
+    }
+    
+    // Email de Contacto
+    if (document.getElementById("contactEmail")) {
+      document.getElementById("contactEmail").value = datosExtraidos.contactEmail || "";
+    }
+    
+    // Teléfono de Contacto
+    if (document.getElementById("contactPhone")) {
+      document.getElementById("contactPhone").value = datosExtraidos.contactPhone || "";
+    }
+    
+    // Moneda
+    if (document.getElementById("moneda")) {
+      document.getElementById("moneda").value = datosExtraidos.currency || "";
+    }
+    
+    // Tipo de Cambio
+    if (document.getElementById("tipoCambio")) {
+      document.getElementById("tipoCambio").value = datosExtraidos.exchangeRate || "";
+    }
+    
+    // Comisión
+    if (document.getElementById("comision")) {
+      document.getElementById("comision").value = datosExtraidos.commission || "";
+    }
+    
+    // Monto Neto
+    if (document.getElementById("montoNeto")) {
+      document.getElementById("montoNeto").value = datosExtraidos.netAmount || "";
+    }
+    
+    // Monto Bruto
+    if (document.getElementById("montoBruto")) {
+      document.getElementById("montoBruto").value = datosExtraidos.grossAmount || "";
+    }
+    
+    // Nombre del Viaje
+    if (document.getElementById("nombreViaje")) {
+      document.getElementById("nombreViaje").value = datosExtraidos.tripName || "";
+    }
+    
+    // Código de Producto
+    if (document.getElementById("codigoProducto")) {
+      document.getElementById("codigoProducto").value = datosExtraidos.productCode || "";
+    }
+    
+    // Adultos
+    if (document.getElementById("adultos")) {
+      document.getElementById("adultos").value = datosExtraidos.adults || "";
+    }
+    
+    // Niños
+    if (document.getElementById("ninos")) {
+      document.getElementById("ninos").value = datosExtraidos.children || "";
+    }
+    
+    // Infantes
+    if (document.getElementById("infantes")) {
+      document.getElementById("infantes").value = datosExtraidos.infants || "";
+    }
+    
+    // Proveedor
+    if (document.getElementById("proveedor")) {
+      document.getElementById("proveedor").value = datosExtraidos.provider || "";
+    }
+    
+    // Código de Reserva
+    if (document.getElementById("codigoReserva")) {
+      document.getElementById("codigoReserva").value = datosExtraidos.reservationCode || "";
+    }
+    
+    // Hotel
+    if (document.getElementById("hotel")) {
+      document.getElementById("hotel").value = datosExtraidos.hotel || "";
+    }
+    
+    // Check In
+    if (document.getElementById("checkIn")) {
+      document.getElementById("checkIn").value = datosExtraidos.checkIn || "";
+    }
+    
+    // Check Out
+    if (document.getElementById("checkOut")) {
+      document.getElementById("checkOut").value = datosExtraidos.checkOut || "";
+    }
+    
+    // Estado de Deuda
+    if (document.getElementById("estadoDeuda")) {
+      document.getElementById("estadoDeuda").value = datosExtraidos.estadoDeuda || "";
+    }
+    
+    // Llenar servicios si existen
+    if (datosExtraidos.services && Array.isArray(datosExtraidos.services) && datosExtraidos.services.length > 0) {
+      const serviciosSection = document.getElementById("serviciosSection");
+      if (serviciosSection) {
+        serviciosSection.style.display = "block";
+      }
+      llenarServicios(datosExtraidos.services);
+    }
+    
+    // Llenar vuelos si existen
+    if (datosExtraidos.flights && Array.isArray(datosExtraidos.flights) && datosExtraidos.flights.length > 0) {
+      const vuelosSection = document.getElementById("vuelosSection");
+      if (vuelosSection) {
+        vuelosSection.style.display = "block";
+      }
+      llenarVuelos(datosExtraidos.flights);
+    }
+    
     // Actualizar estado del botón después de llenar los datos
     setTimeout(() => actualizarEstadoBotonCrearReserva(), 200);
   }, 250); // Esperar 250ms para asegurar que los selects estén poblados
+}
+
+/**
+ * Llena los servicios en el formulario
+ * @param {Array} servicios - Array de servicios extraídos
+ */
+function llenarServicios(servicios) {
+  const serviciosContainer = document.getElementById("serviciosContainer");
+  if (!serviciosContainer) return;
+  
+  serviciosContainer.innerHTML = "";
+  
+  servicios.forEach((servicio, index) => {
+    const servicioDiv = document.createElement("div");
+    servicioDiv.className = "servicio-item";
+    servicioDiv.innerHTML = `
+      <h4>Servicio ${index + 1}</h4>
+      <div class="form-group">
+        <label>Destino:</label>
+        <input type="text" id="servicio_destino_${index}" value="${servicio.destino || ''}" readonly>
+      </div>
+      <div class="form-group">
+        <label>Fecha Entrada:</label>
+        <input type="date" id="servicio_in_${index}" value="${servicio.in || ''}" readonly>
+      </div>
+      <div class="form-group">
+        <label>Fecha Salida:</label>
+        <input type="date" id="servicio_out_${index}" value="${servicio.out || ''}" readonly>
+      </div>
+      <div class="form-group">
+        <label>Noches:</label>
+        <input type="number" id="servicio_nts_${index}" value="${servicio.nts || ''}" readonly>
+      </div>
+      <div class="form-group">
+        <label>Base Pax:</label>
+        <input type="number" id="servicio_basePax_${index}" value="${servicio.basePax || ''}" readonly>
+      </div>
+      <div class="form-group">
+        <label>Servicio:</label>
+        <input type="text" id="servicio_servicio_${index}" value="${servicio.servicio || ''}" readonly>
+      </div>
+      <div class="form-group">
+        <label>Descripción:</label>
+        <textarea id="servicio_descripcion_${index}" readonly>${servicio.descripcion || ''}</textarea>
+      </div>
+      <div class="form-group">
+        <label>Estado:</label>
+        <input type="text" id="servicio_estado_${index}" value="${servicio.estado || ''}" readonly>
+      </div>
+    `;
+    serviciosContainer.appendChild(servicioDiv);
+  });
+}
+
+/**
+ * Llena los vuelos en el formulario
+ * @param {Array} vuelos - Array de vuelos extraídos
+ */
+function llenarVuelos(vuelos) {
+  const vuelosContainer = document.getElementById("vuelosContainer");
+  if (!vuelosContainer) return;
+  
+  vuelosContainer.innerHTML = "";
+  
+  vuelos.forEach((vuelo, index) => {
+    const vueloDiv = document.createElement("div");
+    vueloDiv.className = "vuelo-item";
+    vueloDiv.innerHTML = `
+      <h4>Vuelo ${index + 1}</h4>
+      <div class="form-group">
+        <label>Aerolínea:</label>
+        <input type="text" id="vuelo_airline_${index}" value="${vuelo.airline || ''}" readonly>
+      </div>
+      <div class="form-group">
+        <label>Número de Vuelo:</label>
+        <input type="text" id="vuelo_flightNumber_${index}" value="${vuelo.flightNumber || ''}" readonly>
+      </div>
+      <div class="form-group">
+        <label>Origen:</label>
+        <input type="text" id="vuelo_origin_${index}" value="${vuelo.origin || ''}" readonly>
+      </div>
+      <div class="form-group">
+        <label>Destino:</label>
+        <input type="text" id="vuelo_destination_${index}" value="${vuelo.destination || ''}" readonly>
+      </div>
+      <div class="form-group">
+        <label>Fecha:</label>
+        <input type="date" id="vuelo_date_${index}" value="${vuelo.date || ''}" readonly>
+      </div>
+      <div class="form-group">
+        <label>Hora:</label>
+        <input type="time" id="vuelo_time_${index}" value="${vuelo.time || ''}" readonly>
+      </div>
+    `;
+    vuelosContainer.appendChild(vueloDiv);
+  });
 }
 
 /**
@@ -1307,8 +1540,69 @@ async function ejecutarCrearReserva() {
       estadoReserva: document.getElementById("estadoReserva")?.value || "",
       fechaViaje: document.getElementById("fechaViaje")?.value || "",
       vendedor: document.getElementById("vendedor")?.value || "",
-      cliente: document.getElementById("cliente")?.value || ""
+      cliente: document.getElementById("cliente")?.value || "",
+      codigo: document.getElementById("codigo")?.value || "",
+      reservationDate: document.getElementById("fechaReserva")?.value || "",
+      tourEndDate: document.getElementById("fechaFinTour")?.value || "",
+      dueDate: document.getElementById("fechaVencimiento")?.value || "",
+      contact: document.getElementById("contacto")?.value || "",
+      contactEmail: document.getElementById("contactEmail")?.value || "",
+      contactPhone: document.getElementById("contactPhone")?.value || "",
+      currency: document.getElementById("moneda")?.value || "",
+      exchangeRate: parseFloat(document.getElementById("tipoCambio")?.value) || 0,
+      commission: parseFloat(document.getElementById("comision")?.value) || 0,
+      netAmount: parseFloat(document.getElementById("montoNeto")?.value) || 0,
+      grossAmount: parseFloat(document.getElementById("montoBruto")?.value) || 0,
+      tripName: document.getElementById("nombreViaje")?.value || "",
+      productCode: document.getElementById("codigoProducto")?.value || "",
+      adults: parseInt(document.getElementById("adultos")?.value) || 0,
+      children: parseInt(document.getElementById("ninos")?.value) || 0,
+      infants: parseInt(document.getElementById("infantes")?.value) || 0,
+      provider: document.getElementById("proveedor")?.value || "",
+      reservationCode: document.getElementById("codigoReserva")?.value || "",
+      hotel: document.getElementById("hotel")?.value || "",
+      checkIn: document.getElementById("checkIn")?.value || "",
+      checkOut: document.getElementById("checkOut")?.value || "",
+      estadoDeuda: document.getElementById("estadoDeuda")?.value || ""
     };
+    
+    // Capturar servicios
+    const servicios = [];
+    const serviciosContainer = document.getElementById("serviciosContainer");
+    if (serviciosContainer) {
+      const servicioItems = serviciosContainer.querySelectorAll(".servicio-item");
+      servicioItems.forEach((item, index) => {
+        servicios.push({
+          destino: document.getElementById(`servicio_destino_${index}`)?.value || "",
+          in: document.getElementById(`servicio_in_${index}`)?.value || "",
+          out: document.getElementById(`servicio_out_${index}`)?.value || "",
+          nts: parseInt(document.getElementById(`servicio_nts_${index}`)?.value) || 0,
+          basePax: parseInt(document.getElementById(`servicio_basePax_${index}`)?.value) || 0,
+          servicio: document.getElementById(`servicio_servicio_${index}`)?.value || "",
+          descripcion: document.getElementById(`servicio_descripcion_${index}`)?.value || "",
+          estado: document.getElementById(`servicio_estado_${index}`)?.value || ""
+        });
+      });
+    }
+    datosReserva.services = servicios;
+    
+    // Capturar vuelos
+    const vuelos = [];
+    const vuelosContainer = document.getElementById("vuelosContainer");
+    if (vuelosContainer) {
+      const vueloItems = vuelosContainer.querySelectorAll(".vuelo-item");
+      vueloItems.forEach((item, index) => {
+        vuelos.push({
+          airline: document.getElementById(`vuelo_airline_${index}`)?.value || "",
+          flightNumber: document.getElementById(`vuelo_flightNumber_${index}`)?.value || "",
+          origin: document.getElementById(`vuelo_origin_${index}`)?.value || "",
+          destination: document.getElementById(`vuelo_destination_${index}`)?.value || "",
+          date: document.getElementById(`vuelo_date_${index}`)?.value || "",
+          time: document.getElementById(`vuelo_time_${index}`)?.value || ""
+        });
+      });
+    }
+    datosReserva.flights = vuelos;
     
     // VALIDAR CAMPOS OBLIGATORIOS
     let camposFaltantes = [];
