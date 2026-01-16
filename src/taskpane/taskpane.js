@@ -6,6 +6,7 @@
 /* global document, Office */
 
 import { crearReservaEnITraffic } from './rpaClient.js';
+import { servicesList } from './servicesList.js';
 
 // Estado global para datos maestros
 const masterData = {
@@ -1138,6 +1139,93 @@ function llenarDatosReserva(datosExtraidos) {
 }
 
 /**
+ * Encuentra el mejor servicio coincidente usando regex y comparación de palabras
+ * @param {string} servicioBackend - Nombre del servicio que viene del backend
+ * @returns {string|null} - El servicio más coincidente o null si no hay coincidencias suficientes
+ */
+function encontrarServicioCoincidente(servicioBackend) {
+  if (!servicioBackend || typeof servicioBackend !== 'string') {
+    return null;
+  }
+  
+  const servicioNormalizado = servicioBackend.trim().toUpperCase();
+  const palabrasBackend = servicioNormalizado.split(/\s+/).filter(p => p.length > 0);
+  
+  if (palabrasBackend.length === 0) {
+    return null;
+  }
+  
+  let mejorCoincidencia = null;
+  let maxCoincidencias = 0;
+  let mejorPuntuacion = 0;
+  
+  // Palabras clave importantes que dan más peso a la coincidencia
+  const palabrasClave = ['BODEGA', 'BODEGAS', 'TRASLADO', 'EXCURSION', 'TOUR', 'ALMUERZO', 'CENA', 'HOTEL', 'SPA', 'CABALGATA'];
+  
+  servicesList.forEach(servicioLista => {
+    const servicioListaNormalizado = servicioLista.trim().toUpperCase();
+    const palabrasLista = servicioListaNormalizado.split(/\s+/).filter(p => p.length > 0);
+    
+    // Contar palabras que coinciden
+    let coincidencias = 0;
+    let puntuacion = 0;
+    
+    palabrasBackend.forEach(palabraBackend => {
+      // Buscar la palabra en la lista (coincidencia exacta o parcial)
+      const encontrado = palabrasLista.some(palabraLista => {
+        // Coincidencia exacta
+        if (palabraLista === palabraBackend) {
+          // Dar más peso si es una palabra clave
+          if (palabrasClave.includes(palabraBackend)) {
+            puntuacion += 2;
+          } else {
+            puntuacion += 1;
+          }
+          return true;
+        }
+        // Coincidencia parcial (una contiene a la otra)
+        if (palabraLista.includes(palabraBackend) || palabraBackend.includes(palabraLista)) {
+          // Solo contar si ambas palabras tienen al menos 3 caracteres para evitar falsos positivos
+          if (palabraBackend.length >= 3 && palabraLista.length >= 3) {
+            // Dar peso reducido a coincidencias parciales
+            if (palabrasClave.includes(palabraBackend) || palabrasClave.includes(palabraLista)) {
+              puntuacion += 1;
+            } else {
+              puntuacion += 0.5;
+            }
+            return true;
+          }
+        }
+        return false;
+      });
+      
+      if (encontrado) {
+        coincidencias++;
+      }
+    });
+    
+    // Si hay más de una palabra coincidente, considerar esta opción
+    // O si hay una coincidencia muy significativa (palabra clave con alta puntuación)
+    if (coincidencias > maxCoincidencias && (coincidencias > 1 || puntuacion >= 2)) {
+      maxCoincidencias = coincidencias;
+      mejorPuntuacion = puntuacion;
+      mejorCoincidencia = servicioLista;
+    } else if (coincidencias === maxCoincidencias && puntuacion > mejorPuntuacion) {
+      // Si hay el mismo número de coincidencias, elegir el de mayor puntuación
+      mejorPuntuacion = puntuacion;
+      mejorCoincidencia = servicioLista;
+    }
+  });
+  
+  // Si encontramos al menos 2 palabras coincidentes, o una coincidencia muy significativa
+  if (maxCoincidencias >= 2 || mejorPuntuacion >= 2) {
+    return mejorCoincidencia;
+  }
+  
+  return null;
+}
+
+/**
  * Llena los servicios en el formulario
  * @param {Array} servicios - Array de servicios extraídos
  */
@@ -1150,39 +1238,53 @@ function llenarServicios(servicios) {
   servicios.forEach((servicio, index) => {
     const servicioDiv = document.createElement("div");
     servicioDiv.className = "servicio-item";
+    
+    // Intentar encontrar el servicio coincidente
+    const servicioCoincidente = servicio.servicio 
+      ? encontrarServicioCoincidente(servicio.servicio)
+      : null;
+    
+    // Crear el HTML con un datalist para autocompletado
+    const datalistId = `serviciosList_${index}`;
     servicioDiv.innerHTML = `
       <h4>Servicio ${index + 1}</h4>
       <div class="form-group">
         <label>Destino:</label>
-        <input type="text" id="servicio_destino_${index}" value="${servicio.destino || ''}" readonly>
+        <input type="text" id="servicio_destino_${index}" value="${servicio.destino || ''}">
       </div>
       <div class="form-group">
         <label>Fecha Entrada:</label>
-        <input type="date" id="servicio_in_${index}" value="${servicio.in || ''}" readonly>
+        <input type="date" id="servicio_in_${index}" value="${servicio.in || ''}">
       </div>
       <div class="form-group">
         <label>Fecha Salida:</label>
-        <input type="date" id="servicio_out_${index}" value="${servicio.out || ''}" readonly>
+        <input type="date" id="servicio_out_${index}" value="${servicio.out || ''}">
       </div>
       <div class="form-group">
         <label>Noches:</label>
-        <input type="number" id="servicio_nts_${index}" value="${servicio.nts || ''}" readonly>
+        <input type="number" id="servicio_nts_${index}" value="${servicio.nts || ''}">
       </div>
       <div class="form-group">
         <label>Base Pax:</label>
-        <input type="number" id="servicio_basePax_${index}" value="${servicio.basePax || ''}" readonly>
+        <input type="number" id="servicio_basePax_${index}" value="${servicio.basePax || ''}">
       </div>
       <div class="form-group">
         <label>Servicio:</label>
-        <input type="text" id="servicio_servicio_${index}" value="${servicio.servicio || ''}" readonly>
+        <input type="text" id="servicio_servicio_${index}" 
+               list="${datalistId}" 
+               value="${servicioCoincidente || servicio.servicio || ''}" 
+               placeholder="Buscar o escribir servicio...">
+        <datalist id="${datalistId}">
+          ${servicesList.map(s => `<option value="${s}">${s}</option>`).join('')}
+        </datalist>
       </div>
       <div class="form-group">
         <label>Descripción:</label>
-        <textarea id="servicio_descripcion_${index}" readonly>${servicio.descripcion || ''}</textarea>
+        <textarea id="servicio_descripcion_${index}">${servicio.descripcion || ''}</textarea>
       </div>
       <div class="form-group">
         <label>Estado:</label>
-        <input type="text" id="servicio_estado_${index}" value="${servicio.estado || ''}" readonly>
+        <input type="text" id="servicio_estado_${index}" value="${servicio.estado || ''}">
       </div>
     `;
     serviciosContainer.appendChild(servicioDiv);
