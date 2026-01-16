@@ -1,785 +1,149 @@
+<!-- Copyright (c) Microsoft Corporation. All rights reserved. Licensed under the MIT License. -->
+<!-- This file shows how to design a first-run page that provides a welcome screen to the user about the features of the add-in. -->
+
 <!DOCTYPE html>
-<html lang="en">
-  <head>
+<html>
+
+<head>
     <meta charset="UTF-8" />
     <meta http-equiv="X-UA-Compatible" content="IE=Edge" />
-    <meta name="viewport" content="width=device-width, initial-scale=1" />
-    <title>Email Classifier</title>
-    
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>Contoso Task Pane Add-in</title>
+
     <!-- Office JavaScript API -->
-    <script type="text/javascript" src="https://appsforoffice.microsoft.com/lib/1.1/hosted/office.js"></script>
-  </head>
+    <script type="text/javascript" src="https://appsforoffice.microsoft.com/lib/1/hosted/office.js"></script>
 
-  <body>
-    <div id="root">
-      <!-- Loading state -->
-      <div id="loading" class="loading-container">
-        <div class="spinner"></div>
-        <p>Loading Email Classifier...</p>
-      </div>
+    <!-- For more information on Fluent UI, visit https://developer.microsoft.com/fluentui#/. -->
+    <link rel="stylesheet"
+        href="https://res-1.cdn.office.net/files/fabric-cdn-prod_20230815.002/office-ui-fabric-core/11.1.0/css/fabric.min.css" />
 
-      <!-- Main content (hidden initially) -->
-      <div id="app-content" style="display: none;">
-        <div class="header-controls">
-            <button id="toggle-header-btn" class="icon-button" title="Toggle Header">🔼</button>
+    <!-- Template styles -->
+    <link href="taskpane.css" rel="stylesheet" type="text/css" />
+</head>
+
+<body class="ms-font-m ms-welcome ms-Fabric">
+    <main id="app-body" class="ms-welcome__main">
+        <h2>Extractor de Datos de Pasajero</h2>
+        <p style="margin-bottom:20px; color:#666;">Haz clic en el botón para extraer la información del correo:</p>
+
+        <button id="run" class="ms-Button">
+            <span class="ms-Button-label">📧 Extraer Información</span>
+        </button>
+
+        <!-- Loader -->
+        <div id="loader" style="display:none; text-align:center; padding:40px 20px;">
+            <div class="spinner"></div>
+            <p style="margin-top:20px; color:#666;">Extrayendo información del correo...</p>
+            <p style="font-size:0.9em; color:#999;">Por favor espera, esto puede tomar unos segundos</p>
         </div>
-        <div id="collapsible-header">
-            <div class="header">
-            <h2>📧 Email Classifier</h2>
-            <p class="subtitle">AI-Powered Auto-Classification</p>
-            </div>
 
-            <div class="content">
-            <!-- Status Section -->
-            <div id="status-section" class="section">
-                <div id="status-indicator" class="status-box unregistered">
-                <div class="status-icon">⏸️</div>
-                <div class="status-text">
-                    <h3>Not Registered</h3>
-                    <p>Click below to activate automatic email classification</p>
-                </div>
-                </div>
-            </div>
-
-            <!-- Registration Section -->
-            <div id="registration-section" class="section">
-                <button id="register-button" class="primary-button">
-                <span class="button-icon">✨</span>
-                <span>Activate Auto-Classification</span>
+        <div id="results" style="display:none;">
+            <div style="text-align:right; margin-bottom:10px;">
+                <button id="reextract" class="ms-Button" style="font-size:0.85em; padding:6px 12px;">
+                    <span class="ms-Button-label">🔄 Re-extraer</span>
                 </button>
-                
-                <div id="registration-info" class="info-box" style="display: none;">
-                <p><strong>What happens when you activate?</strong></p>
-                <ul>
-                    <li>✅ Secure single sign-on (no password needed)</li>
-                    <li>✅ AI analyzes new emails automatically</li>
-                    <li>✅ Categories applied instantly</li>
-                    <li>✅ Works in background, no action required</li>
-                </ul>
-                </div>
             </div>
-
-            <!-- Logout Section (shown after registration) -->
-            <div id="logout-section" class="section" style="display: none;">
-                <button id="logout-button" class="secondary-button">
-                <span class="button-icon">🚪</span>
-                <span>Sign Out & Reset</span>
-                </button>
-                <p class="help-text">Sign out to re-authenticate or reset your session</p>
-            </div>
-
-            <!-- Classification Stats (shown after registration) -->
-            <div id="stats-section" class="section" style="display: none;">
-                <h3>📊 Classification Stats</h3>
-                <div class="stats-grid">
-                <div class="stat-card">
-                    <div class="stat-value" id="total-classified">-</div>
-                    <div class="stat-label">Emails Classified</div>
-                </div>
-                <div class="stat-card">
-                    <div class="stat-value" id="categories-count">-</div>
-                    <div class="stat-label">Categories Used</div>
-                </div>
-                </div>
-            </div>
-        </div>
-      </div>
-
-
-          <!-- Reservation Extraction Section (shown after registration) -->
-          <div id="extraction-section" class="section" style="display: none;">
-            <h3>📋 Extracción de Reserva</h3>
-            <p class="help-text">Extrae información estructurada del email actual para crear una reserva</p>
             
-            <button id="extract-button" class="primary-button">
-              <span class="button-icon">🔍</span>
-              <span>Extraer Información</span>
+            <h3>Datos de Pasajeros</h3>
+            
+            <!-- Contenedor dinámico de pasajeros -->
+            <div id="pasajerosContainer"></div>
+
+            <button id="agregarPasajero" class="ms-Button btn-secondary">
+                <span class="ms-Button-label">+ Agregar Pasajero</span>
             </button>
 
-            <!-- Extraction Results (shown after extraction) -->
-            <div id="extraction-results" class="extraction-results" style="display: none;">
-              <div class="results-header">
-                <h4>✅ Información Extraída</h4>
-                <div class="confidence-badge" id="confidence-badge">
-                  <span id="confidence-text">Confianza: 85%</span>
-                </div>
-              </div>
-
-              <!-- Passengers -->
-              <div class="data-group">
-                <h5>👥 Pasajeros (<span id="passengers-count">0</span>)</h5>
-                <div id="passengers-list" class="passengers-list">
-                  <!-- Dynamic passenger cards -->
-                </div>
-              </div>
-
-              <!-- Encabezado iTraffic -->
-              <div class="data-group">
-                <h5>📝 Datos de Reserva</h5>
+            <!-- Sección de Datos de la Reserva -->
+            <div id="datosReservaSection" class="datos-reserva-section">
+                <h3>Datos de la Reserva</h3>
                 
-                <!-- Campos usados en RPA -->
-                <div class="form-grid">
-                  <div class="form-group">
-                    <label class="required">Tipo Reserva</label>
-                    <div class="searchable-select" id="reservation-type-container">
-                      <input type="text" id="input-reservation-type" class="form-input searchable-input" placeholder="Cargando tipos..." autocomplete="off" disabled>
-                      <input type="hidden" id="input-reservation-type-value">
-                      <span id="reservation-type-loader" class="field-loader"></span>
-                      <div class="dropdown-list" id="reservation-type-dropdown"></div>
-                    </div>
-                  </div>
-                  <div class="form-group">
-                    <label class="required">Estado</label>
-                    <div class="searchable-select" id="status-container">
-                      <input type="text" id="input-status" class="form-input searchable-input" placeholder="Cargando estados..." autocomplete="off" disabled>
-                      <input type="hidden" id="input-status-value">
-                      <span id="status-loader" class="field-loader"></span>
-                      <div class="dropdown-list" id="status-dropdown"></div>
-                    </div>
-                  </div>
+                <div class="form-group">
+                    <label>Tipo de Reserva: <span style="color: red;">*</span></label>
+                    <select id="tipoReserva" required>
+                        <option value="">Seleccione...</option>
+                        <option value="AGENCIAS [COAG]">Agencias [COAG]</option>
+                        <option value="DIRECTA">Directa</option>
+                        <option value="CORPORATIVA">Corporativa</option>
+                    </select>
                 </div>
 
-                <div class="form-grid">
-                  <div class="form-group">
-                    <label class="required">Fecha de Viaje</label>
-                    <input type="date" id="input-travel-date" class="form-input">
-                  </div>
-                  <div class="form-group">
-                    <label class="required">Vendedor</label>
-                    <div class="searchable-select" id="seller-container">
-                      <input type="text" id="input-seller" class="form-input searchable-input" placeholder="Buscar vendedor..." autocomplete="off" disabled>
-                      <input type="hidden" id="input-seller-value">
-                      <span id="seller-loader" class="field-loader"></span>
-                      <div class="dropdown-list" id="seller-dropdown"></div>
-                    </div>
-                  </div>
+                <div class="form-group">
+                    <label>Estado: <span style="color: red;">*</span></label>
+                    <select id="estadoReserva" required>
+                        <option value="">Seleccione...</option>
+                        <option value="PENDIENTE DE CONFIRMACION [PC]">Pendiente de Confirmación [PC]</option>
+                        <option value="CONFIRMADA">Confirmada</option>
+                        <option value="CANCELADA">Cancelada</option>
+                    </select>
                 </div>
 
-                <div class="form-grid">
-                  <div class="form-group">
-                    <label class="required">Cliente</label>
-                    <div class="searchable-select" id="client-container">
-                      <input type="text" id="input-client" class="form-input searchable-input" placeholder="Buscar cliente..." autocomplete="off" disabled>
-                      <input type="hidden" id="input-client-value">
-                      <span id="client-loader" class="field-loader"></span>
-                      <div class="dropdown-list" id="client-dropdown"></div>
-                    </div>
-                  </div>
+                <div class="form-group">
+                    <label>Fecha de Viaje: <span style="color: red;">*</span></label>
+                    <input type="date" id="fechaViaje" required>
                 </div>
 
-                <!-- Campos NO usados en RPA (comentados) -->
-                <!-- <div class="form-grid">
-                  <div class="form-group">
-                    <label>Codigo</label>
-                    <input type="text" id="input-codigo" class="form-input" placeholder="Auto" readonly>
-                  </div>
-                  <div class="form-group">
-                    <label>Estado Deuda</label>
-                    <input type="text" id="input-estado-deuda" class="form-input" value="Aún no posee estado deudor" readonly>
-                  </div>
-                </div> -->
-
-                <!-- <div class="form-grid">
-                  <div class="form-group">
-                    <label class="required">Fecha de Reserva</label>
-                    <input type="date" id="input-reservation-date" class="form-input">
-                  </div>
-                  <div class="form-group">
-                    <label>Fecha Fin Tour</label>
-                    <input type="date" id="input-tour-end-date" class="form-input">
-                  </div>
+                <div class="form-group">
+                    <label>Vendedor: <span style="color: red;">*</span></label>
+                    <select id="vendedor" required>
+                        <option value="">Seleccione...</option>
+                        <option value="TEST TEST">TEST TEST</option>
+                        <option value="VENDEDOR 1">Vendedor 1</option>
+                        <option value="VENDEDOR 2">Vendedor 2</option>
+                    </select>
                 </div>
-                <div class="form-grid">
-                  <div class="form-group">
-                    <label class="required">Vencimiento</label>
-                    <input type="date" id="input-due-date" class="form-input">
-                  </div>
-                  <div class="form-group">
-                    <label>Pasajero</label>
-                    <input type="text" id="input-passenger-name" class="form-input" placeholder="Nombre principal">
-                  </div>
-                </div> -->
 
-                <!-- <div class="form-grid">
-                  <div class="form-group">
-                    <label>Contacto</label>
-                    <div class="searchable-select" id="contact-container">
-                      <input type="text" id="input-contact" class="form-input searchable-input" placeholder="Buscar contacto..." autocomplete="off">
-                      <input type="hidden" id="input-contact-value">
-                      <span id="contact-loader" class="field-loader"></span>
-                      <div class="dropdown-list" id="contact-dropdown"></div>
-                    </div>
-                  </div>
-                </div> -->
-
-                <!-- <div class="form-grid">
-                  <div class="form-group">
-                    <label>Comision %</label>
-                    <input type="number" id="input-commission" class="form-input" step="0.01">
-                  </div>
-                  <div class="form-group">
-                    <label class="required">Moneda</label>
-                    <div class="searchable-select" id="currency-container">
-                      <input type="text" id="input-currency" class="form-input searchable-input" placeholder="Buscar moneda..." autocomplete="off" disabled>
-                      <input type="hidden" id="input-currency-value">
-                      <span id="currency-loader" class="field-loader"></span>
-                      <div class="dropdown-list" id="currency-dropdown"></div>
-                    </div>
-                  </div>
+                <div class="form-group">
+                    <label>Cliente: <span style="color: red;">*</span></label>
+                    <select id="cliente" required>
+                        <option value="">Seleccione...</option>
+                        <option value="DESPEGAR - TEST - 1">DESPEGAR - TEST - 1</option>
+                        <option value="CLIENTE 1">Cliente 1</option>
+                        <option value="CLIENTE 2">Cliente 2</option>
+                    </select>
                 </div>
-                <div class="form-grid">
-                  <div class="form-group">
-                    <label class="required">Cambio</label>
-                    <input type="number" id="input-exchange-rate" class="form-input" value="1430.00" step="0.01">
-                  </div>
-                </div> -->
 
-                <!-- <div class="form-grid" style="grid-template-columns: 1fr 1fr 1fr;">
-                  <div class="form-group">
-                    <label>Adultos</label>
-                    <input type="number" id="input-adults" class="form-input" min="0">
-                  </div>
-                  <div class="form-group">
-                    <label>Menores</label>
-                    <input type="number" id="input-children" class="form-input" min="0">
-                  </div>
-                  <div class="form-group">
-                    <label>Infoa</label>
-                    <input type="number" id="input-infants" class="form-input" min="0">
-                  </div>
-                </div> -->
-
-                <!-- <div class="form-grid">
-                  <div class="form-group">
-                    <label>Nombre de Viaje</label>
-                    <input type="text" id="input-trip-name" class="form-input">
-                  </div>
-                  <div class="form-group">
-                    <label>Cod. de Producto</label>
-                    <input type="text" id="input-product-code" class="form-input">
-                  </div>
-                </div> -->
-              </div>
-
-              <!-- Secciones NO usadas en RPA (comentadas) -->
-              
-              <!-- Flights -->
-              <!-- <div class="data-group" id="flights-group" style="display: none;">
-                <h5>✈️ Vuelos (<span id="flights-count">0</span>)</h5>
-                <div id="flights-list" class="flights-list">
-                  Dynamic flight cards
+                <div class="form-group">
+                    <label>Fecha de Reserva:</label>
+                    <input type="date" id="fechaReserva">
                 </div>
-              </div> -->
 
-              <!-- Services -->
-              <!-- <div class="data-group" id="services-group" style="display: none;">
-                <h5>🚗 Servicios (<span id="services-count">0</span>)</h5>
-                <div id="services-list" class="services-list">
-                  Dynamic service cards
+                <div class="form-group">
+                    <label>Fecha Fin de Tour:</label>
+                    <input type="date" id="fechaFinTour">
                 </div>
-              </div> -->
 
-              <!-- Contact -->
-              <!-- <div class="data-group">
-                <h5>📞 Contacto</h5>
-                <div class="form-row">
-                  <label>Email:</label>
-                  <input type="email" id="input-contact-email" class="form-input" placeholder="N/A" data-rpa="contact-email">
+                <div class="form-group">
+                    <label>Fecha de Vencimiento:</label>
+                    <input type="date" id="fechaVencimiento">
                 </div>
-                <div class="form-row">
-                  <label>Teléfono:</label>
-                  <input type="tel" id="input-contact-phone" class="form-input" placeholder="N/A" data-rpa="contact-phone">
-                </div>
-              </div> -->
 
-              <!-- Action Buttons -->
-              <div class="action-buttons">
-                <button id="reanalyze-button" class="secondary-button">
-                  <span class="button-icon">🔄</span>
-                  <span>Re-analizar</span>
-                </button>
-                <button id="confirm-button" class="primary-button" data-rpa="confirm-button">
-                  <span class="button-icon">✔️</span>
-                  <span>Confirmar</span>
-                </button>
-              </div>
+                <div class="form-group">
+                    <label>Hotel:</label>
+                    <input type="text" id="hotel" placeholder="Nombre del hotel">
+                </div>
+
+                <!-- Sección de Servicios -->
+                <div id="serviciosSection" style="margin-top: 20px; display: none;">
+                    <h3>Servicios</h3>
+                    <div id="serviciosContainer"></div>
+                </div>
+
+                <!-- Sección de Vuelos -->
+                <div id="vuelosSection" style="margin-top: 20px; display: none;">
+                    <h3>Vuelos</h3>
+                    <div id="vuelosContainer"></div>
+                </div>
             </div>
 
-            <!-- Extraction Loading -->
-            <div id="extraction-loading" class="extraction-loading" style="display: none;">
-              <div class="spinner-small"></div>
-              <p>Analizando email con IA...</p>
-            </div>
+            <button id="crearReserva" class="ms-Button btn-crear-reserva">
+                <span class="ms-Button-label">🚀 Crear Reserva en iTraffic</span>
+            </button>
 
-            <!-- Extraction Error -->
-            <div id="extraction-error" class="error-box" style="display: none;">
-              <div class="error-icon">⚠️</div>
-              <div class="error-content">
-                <h4>Error de Extracción</h4>
-                <p id="extraction-error-message"></p>
-                <button id="retry-extraction-button" class="secondary-button">Reintentar</button>
-              </div>
-            </div>
-          </div>
-
-          <!-- Error Section -->
-          <div id="error-section" class="section error-box" style="display: none;">
-            <div class="error-icon">⚠️</div>
-            <div class="error-content">
-              <h4>Error</h4>
-              <p id="error-message"></p>
-              <button id="retry-button" class="secondary-button">Try Again</button>
-            </div>
-          </div>
+            <button id="guardar" class="ms-Button">
+                <span class="ms-Button-label">Guardar Todos los Datos</span>
+            </button>
         </div>
+    </main>
+</body>
 
-        <div class="footer">
-          <p class="footer-text">
-            Powered by Azure OpenAI • <a href="#" id="help-link">Help</a>
-          </p>
-        </div>
-      </div>
-    </div>
-
-    <style>
-      * {
-        margin: 0;
-        padding: 0;
-        box-sizing: border-box;
-      }
-
-      body {
-        font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
-        background: #faf9f8;
-        color: #323130;
-        padding: 16px;
-        overflow-x: hidden;
-      }
-
-      .loading-container {
-        display: flex;
-        flex-direction: column;
-        align-items: center;
-        justify-content: center;
-        min-height: 400px;
-      }
-
-      .spinner {
-        width: 40px;
-        height: 40px;
-        border: 4px solid #f3f2f1;
-        border-top: 4px solid #0078d4;
-        border-radius: 50%;
-        animation: spin 1s linear infinite;
-      }
-
-      @keyframes spin {
-        0% { transform: rotate(0deg); }
-        100% { transform: rotate(360deg); }
-      }
-
-      /* Field loaders for dropdowns */
-      .select-wrapper, .input-wrapper {
-        position: relative;
-        display: flex;
-        align-items: center;
-      }
-      
-      .select-wrapper select, .input-wrapper input {
-        flex: 1;
-      }
-      
-      /* Searchable Select Component */
-      .searchable-select {
-        position: relative;
-        width: 100%;
-      }
-      
-      .searchable-select .searchable-input {
-        width: 100%;
-        padding-right: 30px;
-      }
-      
-      .searchable-select .dropdown-list {
-        position: absolute;
-        top: 100%;
-        left: 0;
-        right: 0;
-        max-height: 200px;
-        overflow-y: auto;
-        background: white;
-        border: 1px solid #8a8886;
-        border-top: none;
-        border-radius: 0 0 4px 4px;
-        box-shadow: 0 4px 8px rgba(0,0,0,0.15);
-        z-index: 1000;
-        display: none;
-      }
-      
-      .searchable-select .dropdown-list.active {
-        display: block;
-      }
-      
-      .searchable-select .dropdown-item {
-        padding: 8px 12px;
-        cursor: pointer;
-        font-size: 13px;
-        border-bottom: 1px solid #f3f2f1;
-      }
-      
-      .searchable-select .dropdown-item:last-child {
-        border-bottom: none;
-      }
-      
-      .searchable-select .dropdown-item:hover,
-      .searchable-select .dropdown-item.highlighted {
-        background-color: #f3f2f1;
-      }
-      
-      .searchable-select .dropdown-item.selected {
-        background-color: #e1efff;
-        font-weight: 600;
-      }
-      
-      .searchable-select .dropdown-empty {
-        padding: 12px;
-        text-align: center;
-        color: #605e5c;
-        font-size: 13px;
-      }
-      
-      .field-loader {
-        position: absolute;
-        right: 10px;
-        top: 50%;
-        transform: translateY(-50%);
-        width: 16px;
-        height: 16px;
-        border: 2px solid #f3f2f1;
-        border-top: 2px solid #0078d4;
-        border-radius: 50%;
-        animation: spin 0.8s linear infinite;
-        display: none;
-      }
-      
-      .field-loader.active {
-        display: inline-block;
-      }
-      
-      .form-input:disabled {
-        background-color: #f3f2f1;
-        cursor: wait;
-      }
-
-      .header {
-        text-align: center;
-        margin-bottom: 24px;
-        padding-bottom: 16px;
-        border-bottom: 2px solid #edebe9;
-      }
-
-      .header h2 {
-        font-size: 24px;
-        font-weight: 600;
-        color: #323130;
-        margin-bottom: 8px;
-      }
-
-      .subtitle {
-        font-size: 14px;
-        color: #605e5c;
-      }
-
-      .section {
-        margin-bottom: 20px;
-      }
-
-      .status-box {
-        display: flex;
-        align-items: center;
-        padding: 16px;
-        border-radius: 8px;
-        border: 2px solid #edebe9;
-        background: white;
-      }
-
-      .status-box.registered {
-        border-color: #107c10;
-        background: #f3faf3;
-      }
-
-      .status-icon {
-        font-size: 32px;
-        margin-right: 16px;
-      }
-
-      .status-text h3 {
-        font-size: 16px;
-        font-weight: 600;
-        margin-bottom: 4px;
-      }
-
-      .status-text p {
-        font-size: 13px;
-        color: #605e5c;
-      }
-
-      .primary-button {
-        width: 100%;
-        padding: 14px 20px;
-        font-size: 15px;
-        font-weight: 600;
-        color: white;
-        background: #0078d4;
-        border: none;
-        border-radius: 6px;
-        cursor: pointer;
-        display: flex;
-        align-items: center;
-        justify-content: center;
-        transition: background 0.2s ease;
-      }
-
-      .primary-button:hover {
-        background: #106ebe;
-      }
-
-      .primary-button:disabled {
-        background: #c8c6c4;
-        cursor: not-allowed;
-      }
-
-      .button-icon {
-        margin-right: 8px;
-        font-size: 18px;
-      }
-
-      .secondary-button {
-        padding: 10px 16px;
-        font-size: 14px;
-        color: #0078d4;
-        background: white;
-        border: 1px solid #0078d4;
-        border-radius: 4px;
-        cursor: pointer;
-        transition: all 0.2s ease;
-      }
-
-      .secondary-button:hover {
-        background: #f3f2f1;
-      }
-
-      .help-text {
-        margin-top: 8px;
-        font-size: 12px;
-        color: #666;
-        text-align: center;
-      }
-
-      .info-box {
-        margin-top: 16px;
-        padding: 16px;
-        background: #fff4ce;
-        border: 1px solid #fde300;
-        border-radius: 6px;
-        font-size: 13px;
-      }
-
-      .info-box ul {
-        margin-top: 8px;
-        margin-left: 20px;
-      }
-
-      .info-box li {
-        margin-bottom: 6px;
-      }
-
-      .error-box {
-        display: flex;
-        align-items: flex-start;
-        padding: 16px;
-        background: #fef0f0;
-        border: 1px solid #d13438;
-        border-radius: 6px;
-      }
-
-      .error-icon {
-        font-size: 24px;
-        margin-right: 12px;
-      }
-
-      .error-content h4 {
-        font-size: 15px;
-        color: #a4262c;
-        margin-bottom: 8px;
-      }
-
-      .error-content p {
-        font-size: 13px;
-        color: #605e5c;
-        margin-bottom: 12px;
-      }
-
-      .stats-grid {
-        display: grid;
-        grid-template-columns: 1fr 1fr;
-        gap: 12px;
-      }
-
-      .stat-card {
-        background: white;
-        padding: 16px;
-        border-radius: 6px;
-        border: 1px solid #edebe9;
-        text-align: center;
-      }
-
-      .stat-value {
-        font-size: 28px;
-        font-weight: 700;
-        color: #0078d4;
-        margin-bottom: 4px;
-      }
-
-      .stat-label {
-        font-size: 12px;
-        color: #605e5c;
-        text-transform: uppercase;
-        letter-spacing: 0.5px;
-      }
-
-      .footer {
-        margin-top: 32px;
-        padding-top: 16px;
-        border-top: 1px solid #edebe9;
-        text-align: center;
-      }
-
-      .footer-text {
-        font-size: 12px;
-        color: #8a8886;
-      }
-
-      .footer-text a {
-        color: #0078d4;
-        text-decoration: none;
-      }
-
-      .footer-text a:hover {
-        text-decoration: underline;
-      }
-
-      /* Passenger Card Styles */
-      .passenger-card {
-        background: white;
-        border: 1px solid #edebe9;
-        border-radius: 4px;
-        padding: 12px;
-        margin-bottom: 8px;
-      }
-      .passenger-card-header {
-        display: flex;
-        justify-content: space-between;
-        align-items: center;
-        margin-bottom: 8px;
-        padding-bottom: 8px;
-        border-bottom: 1px solid #f3f2f1;
-      }
-      .passenger-details div {
-        margin-bottom: 4px;
-        font-size: 13px;
-      }
-      .passenger-type-badge {
-        background: #e1dfdd;
-        padding: 2px 8px;
-        border-radius: 10px;
-        font-size: 11px;
-        font-weight: 600;
-      }
-
-      /* Form Styles */
-      .form-row {
-        margin-bottom: 12px;
-      }
-      .form-row label {
-        display: block;
-        font-weight: 600;
-        font-size: 13px;
-        color: #323130;
-      }
-      .form-input {
-        width: 100%;
-        padding: 8px 12px;
-        border: 1px solid #8a8886;
-        border-radius: 4px;
-        font-size: 14px;
-        margin-top: 4px;
-      }
-      .form-input:focus {
-        border-color: #0078d4;
-        outline: none;
-      }
-      .missing-field {
-        border-color: #d13438 !important;
-        background-color: #fde7e9;
-      }
-
-      /* New Styles for Editable Forms */
-      .header-controls {
-          display: flex;
-          justify-content: flex-end;
-          padding: 4px;
-      }
-      .icon-button {
-          background: none;
-          border: none;
-          cursor: pointer;
-          font-size: 16px;
-          padding: 4px;
-      }
-      .icon-button:hover {
-          background-color: #f3f2f1;
-          border-radius: 4px;
-      }
-      .form-grid {
-          display: grid;
-          grid-template-columns: 1fr 1fr;
-          gap: 8px;
-      }
-      .form-group {
-          display: flex;
-          flex-direction: column;
-      }
-      .form-group.full-width {
-          grid-column: span 2;
-      }
-      .form-group label {
-          font-size: 11px;
-          font-weight: 600;
-          color: #605e5c;
-          margin-bottom: 2px;
-      }
-      .passenger-input, .flight-input, .service-input {
-          padding: 6px;
-          border: 1px solid #8a8886;
-          border-radius: 2px;
-          font-size: 13px;
-          width: 100%;
-          box-sizing: border-box;
-      }
-      .small-button {
-          font-size: 12px;
-          padding: 4px 8px;
-          margin-top: 8px;
-          width: 100%;
-      }
-      .remove-passenger, .remove-flight, .remove-service {
-          color: #d13438;
-      }
-      .required::after {
-        content: " *";
-        color: #d13438;
-      }
-    </style>
-  </body>
 </html>
