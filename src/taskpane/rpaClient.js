@@ -54,7 +54,9 @@ function transformarDatosParaRPA(pasajeros, datosReserva = {}) {
     infants: datosReserva.infants || 0,
     provider: datosReserva.provider || '',
     reservationCode: datosReserva.reservationCode || '',
-    hotel: datosReserva.hotel || '',
+    hotel: datosReserva.hotel && typeof datosReserva.hotel === 'object' 
+      ? datosReserva.hotel 
+      : (datosReserva.hotel ? { nombre_hotel: datosReserva.hotel, tipo_habitacion: '', Ciudad: '', Categoria: null } : null),
     checkIn: formatearFecha(datosReserva.checkIn) || '',
     checkOut: formatearFecha(datosReserva.checkOut) || '',
     estadoDeuda: datosReserva.estadoDeuda || '',
