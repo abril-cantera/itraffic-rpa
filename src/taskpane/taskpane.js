@@ -1275,7 +1275,7 @@ function llenarServicios(servicios) {
                value="${servicioCoincidente || servicio.servicio || ''}" 
                placeholder="Buscar o escribir servicio...">
         <datalist id="${datalistId}">
-          ${servicesList.map(s => `<option value="${s}">${s}</option>`).join('')}
+          ${servicesList.map(s => `<option class="servicio-option" value="${s}">${s}</option>`).join('')}
         </datalist>
       </div>
       <div class="form-group">

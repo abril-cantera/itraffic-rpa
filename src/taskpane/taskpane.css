@@ -539,6 +539,7 @@ input[type="number"] {
   padding: 20px;
   background-color: #ffffffcb;
   border: 1px solid #e5e7eb;
+  color: #1a1a1a;
   border-radius: 8px;
 }
 
@@ -549,4 +550,9 @@ input[type="number"] {
   margin-bottom: 16px;
   padding-bottom: 12px;
   border-bottom: 2px solid #e5e7eb;
+}
+
+/* Estilos para las opciones del datalist */
+.servicio-option {
+  color: #1a1a1a !important;
 }
