@@ -1095,9 +1095,25 @@ function llenarDatosReserva(datosExtraidos) {
       document.getElementById("codigoReserva").value = datosExtraidos.reservationCode || "";
     }
     
-    // Hotel
-    if (document.getElementById("hotel")) {
-      document.getElementById("hotel").value = datosExtraidos.hotel || "";
+    // Hotel (ahora es un objeto)
+    if (datosExtraidos.hotel && typeof datosExtraidos.hotel === 'object') {
+      if (document.getElementById("hotel_nombre")) {
+        document.getElementById("hotel_nombre").value = datosExtraidos.hotel.nombre_hotel || "";
+      }
+      if (document.getElementById("hotel_tipo_habitacion")) {
+        document.getElementById("hotel_tipo_habitacion").value = datosExtraidos.hotel.tipo_habitacion || "";
+      }
+      if (document.getElementById("hotel_ciudad")) {
+        document.getElementById("hotel_ciudad").value = datosExtraidos.hotel.Ciudad || "";
+      }
+      if (document.getElementById("hotel_categoria")) {
+        document.getElementById("hotel_categoria").value = datosExtraidos.hotel.Categoria || "";
+      }
+    } else if (typeof datosExtraidos.hotel === 'string') {
+      // Compatibilidad con formato antiguo (solo texto)
+      if (document.getElementById("hotel_nombre")) {
+        document.getElementById("hotel_nombre").value = datosExtraidos.hotel || "";
+      }
     }
     
     // Check In
@@ -1662,7 +1678,24 @@ async function ejecutarCrearReserva() {
       infants: parseInt(document.getElementById("infantes")?.value) || 0,
       provider: document.getElementById("proveedor")?.value || "",
       reservationCode: document.getElementById("codigoReserva")?.value || "",
-      hotel: document.getElementById("hotel")?.value || "",
+      hotel: (() => {
+        const nombreHotel = document.getElementById("hotel_nombre")?.value || "";
+        const tipoHabitacion = document.getElementById("hotel_tipo_habitacion")?.value || "";
+        const ciudad = document.getElementById("hotel_ciudad")?.value || "";
+        const categoria = document.getElementById("hotel_categoria")?.value || null;
+        
+        // Si todos los campos están vacíos, retornar null
+        if (!nombreHotel && !tipoHabitacion && !ciudad && !categoria) {
+          return null;
+        }
+        
+        return {
+          nombre_hotel: nombreHotel,
+          tipo_habitacion: tipoHabitacion,
+          Ciudad: ciudad,
+          Categoria: categoria || null
+        };
+      })(),
       checkIn: document.getElementById("checkIn")?.value || "",
       checkOut: document.getElementById("checkOut")?.value || "",
       estadoDeuda: document.getElementById("estadoDeuda")?.value || ""
