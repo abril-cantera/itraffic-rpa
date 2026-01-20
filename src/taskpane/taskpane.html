@@ -118,20 +118,28 @@
                 </div>
 
                 <div class="form-group">
-                    <label>Nombre del Hotel:</label>
-                    <input type="text" id="hotel_nombre" placeholder="Nombre del hotel">
+                    <label>Nombre del Hotel: <span style="color: red;">*</span></label>
+                    <input type="text" id="hotel_nombre" placeholder="Nombre del hotel" required>
                 </div>
                 <div class="form-group">
-                    <label>Tipo de Habitación:</label>
-                    <input type="text" id="hotel_tipo_habitacion" placeholder="Ej: DWL, SGL, DBL">
+                    <label>Tipo de Habitación: <span style="color: red;">*</span></label>
+                    <input type="text" id="hotel_tipo_habitacion" placeholder="Ej: DWL, SGL, DBL" required>
                 </div>
                 <div class="form-group">
-                    <label>Ciudad:</label>
-                    <input type="text" id="hotel_ciudad" placeholder="Ej: MDZ, BUE">
+                    <label>Ciudad: <span style="color: red;">*</span></label>
+                    <input type="text" id="hotel_ciudad" placeholder="Ej: MDZ, BUE" required>
                 </div>
                 <div class="form-group">
                     <label>Categoría:</label>
                     <input type="text" id="hotel_categoria" placeholder="Categoría del hotel">
+                </div>
+                <div class="form-group">
+                    <label>Fecha Entrada Hotel: <span style="color: red;">*</span></label>
+                    <input type="date" id="hotel_in" required>
+                </div>
+                <div class="form-group">
+                    <label>Fecha Salida Hotel: <span style="color: red;">*</span></label>
+                    <input type="date" id="hotel_out" required>
                 </div>
 
                 <!-- Sección de Servicios -->

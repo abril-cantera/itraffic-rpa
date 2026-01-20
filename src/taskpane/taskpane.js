@@ -137,6 +137,16 @@ Office.onReady((info) => {
         }
       });
       
+      // Agregar event listeners para campos de hotel
+      const camposHotel = ['hotel_nombre', 'hotel_tipo_habitacion', 'hotel_ciudad', 'hotel_in', 'hotel_out'];
+      camposHotel.forEach(campoId => {
+        const campo = document.getElementById(campoId);
+        if (campo) {
+          campo.addEventListener('change', actualizarEstadoBotonCrearReserva);
+          campo.addEventListener('input', actualizarEstadoBotonCrearReserva);
+        }
+      });
+      
       // Cargar datos maestros al iniciar
       cargarDatosMaestros();
     }
@@ -1109,6 +1119,12 @@ function llenarDatosReserva(datosExtraidos) {
       if (document.getElementById("hotel_categoria")) {
         document.getElementById("hotel_categoria").value = datosExtraidos.hotel.Categoria || "";
       }
+      if (document.getElementById("hotel_in")) {
+        document.getElementById("hotel_in").value = datosExtraidos.hotel.in || "";
+      }
+      if (document.getElementById("hotel_out")) {
+        document.getElementById("hotel_out").value = datosExtraidos.hotel.out || "";
+      }
     } else if (typeof datosExtraidos.hotel === 'string') {
       // Compatibilidad con formato antiguo (solo texto)
       if (document.getElementById("hotel_nombre")) {
@@ -1265,46 +1281,72 @@ function llenarServicios(servicios) {
     servicioDiv.innerHTML = `
       <h4>Servicio ${index + 1}</h4>
       <div class="form-group">
-        <label>Destino:</label>
-        <input type="text" id="servicio_destino_${index}" value="${servicio.destino || ''}">
+        <label>Destino: <span style="color: red;">*</span></label>
+        <input type="text" id="servicio_destino_${index}" value="${servicio.destino || ''}" required>
       </div>
       <div class="form-group">
-        <label>Fecha Entrada:</label>
-        <input type="date" id="servicio_in_${index}" value="${servicio.in || ''}">
+        <label>Fecha Entrada: <span style="color: red;">*</span></label>
+        <input type="date" id="servicio_in_${index}" value="${servicio.in || ''}" required>
       </div>
       <div class="form-group">
-        <label>Fecha Salida:</label>
-        <input type="date" id="servicio_out_${index}" value="${servicio.out || ''}">
+        <label>Fecha Salida: <span style="color: red;">*</span></label>
+        <input type="date" id="servicio_out_${index}" value="${servicio.out || ''}" required>
       </div>
       <div class="form-group">
-        <label>Noches:</label>
-        <input type="number" id="servicio_nts_${index}" value="${servicio.nts || ''}">
+        <label>Noches: <span style="color: red;">*</span></label>
+        <input type="number" id="servicio_nts_${index}" value="${servicio.nts || ''}" required>
       </div>
       <div class="form-group">
-        <label>Base Pax:</label>
-        <input type="number" id="servicio_basePax_${index}" value="${servicio.basePax || ''}">
+        <label>Base Pax: <span style="color: red;">*</span></label>
+        <input type="number" id="servicio_basePax_${index}" value="${servicio.basePax || ''}" required>
       </div>
       <div class="form-group">
-        <label>Servicio:</label>
+        <label>Servicio: <span style="color: red;">*</span></label>
         <input type="text" id="servicio_servicio_${index}" 
                list="${datalistId}" 
                value="${servicioCoincidente || servicio.servicio || ''}" 
-               placeholder="Buscar o escribir servicio...">
+               placeholder="Buscar o escribir servicio..."
+               required>
         <datalist id="${datalistId}">
           ${servicesList.map(s => `<option class="servicio-option" value="${s}">${s}</option>`).join('')}
         </datalist>
       </div>
       <div class="form-group">
-        <label>Descripción:</label>
-        <textarea id="servicio_descripcion_${index}">${servicio.descripcion || ''}</textarea>
+        <label>Descripción: <span style="color: red;">*</span></label>
+        <textarea id="servicio_descripcion_${index}" required>${servicio.descripcion || ''}</textarea>
       </div>
       <div class="form-group">
-        <label>Estado:</label>
-        <input type="text" id="servicio_estado_${index}" value="${servicio.estado || ''}">
+        <label>Estado: <span style="color: red;">*</span></label>
+        <input type="text" id="servicio_estado_${index}" value="${servicio.estado || ''}" required>
       </div>
     `;
     serviciosContainer.appendChild(servicioDiv);
+    
+    // Agregar event listeners para validación en tiempo real
+    setTimeout(() => {
+      const camposServicio = [
+        `servicio_destino_${index}`,
+        `servicio_in_${index}`,
+        `servicio_out_${index}`,
+        `servicio_nts_${index}`,
+        `servicio_basePax_${index}`,
+        `servicio_servicio_${index}`,
+        `servicio_descripcion_${index}`,
+        `servicio_estado_${index}`
+      ];
+      
+      camposServicio.forEach(campoId => {
+        const campo = document.getElementById(campoId);
+        if (campo) {
+          campo.addEventListener('change', actualizarEstadoBotonCrearReserva);
+          campo.addEventListener('input', actualizarEstadoBotonCrearReserva);
+        }
+      });
+    }, 100);
   });
+  
+  // Actualizar estado del botón después de crear los servicios
+  setTimeout(() => actualizarEstadoBotonCrearReserva(), 200);
 }
 
 /**
@@ -1392,7 +1434,55 @@ function validarCamposObligatorios() {
     vendedor.trim() !== "" &&
     cliente.trim() !== "";
   
-  return pasajerosValidos && reservaValida;
+  // Validar campos obligatorios del hotel
+  const hotelNombre = document.getElementById("hotel_nombre")?.value || "";
+  const hotelTipoHabitacion = document.getElementById("hotel_tipo_habitacion")?.value || "";
+  const hotelCiudad = document.getElementById("hotel_ciudad")?.value || "";
+  const hotelIn = document.getElementById("hotel_in")?.value || "";
+  const hotelOut = document.getElementById("hotel_out")?.value || "";
+  
+  const hotelValido = 
+    hotelNombre.trim() !== "" &&
+    hotelTipoHabitacion.trim() !== "" &&
+    hotelCiudad.trim() !== "" &&
+    hotelIn.trim() !== "" &&
+    hotelOut.trim() !== "";
+  
+  // Validar campos obligatorios de servicios
+  const serviciosContainer = document.getElementById("serviciosContainer");
+  let serviciosValidos = true;
+  
+  if (serviciosContainer) {
+    const servicioItems = serviciosContainer.querySelectorAll(".servicio-item");
+    
+    if (servicioItems.length > 0) {
+      servicioItems.forEach((item, index) => {
+        const destino = document.getElementById(`servicio_destino_${index}`)?.value || "";
+        const servicioIn = document.getElementById(`servicio_in_${index}`)?.value || "";
+        const servicioOut = document.getElementById(`servicio_out_${index}`)?.value || "";
+        const nts = document.getElementById(`servicio_nts_${index}`)?.value || "";
+        const basePax = document.getElementById(`servicio_basePax_${index}`)?.value || "";
+        const servicio = document.getElementById(`servicio_servicio_${index}`)?.value || "";
+        const descripcion = document.getElementById(`servicio_descripcion_${index}`)?.value || "";
+        const estado = document.getElementById(`servicio_estado_${index}`)?.value || "";
+        
+        if (
+          destino.trim() === "" ||
+          servicioIn.trim() === "" ||
+          servicioOut.trim() === "" ||
+          nts.trim() === "" ||
+          basePax.trim() === "" ||
+          servicio.trim() === "" ||
+          descripcion.trim() === "" ||
+          estado.trim() === ""
+        ) {
+          serviciosValidos = false;
+        }
+      });
+    }
+  }
+  
+  return pasajerosValidos && reservaValida && hotelValido && serviciosValidos;
 }
 
 /**
@@ -1683,9 +1773,11 @@ async function ejecutarCrearReserva() {
         const tipoHabitacion = document.getElementById("hotel_tipo_habitacion")?.value || "";
         const ciudad = document.getElementById("hotel_ciudad")?.value || "";
         const categoria = document.getElementById("hotel_categoria")?.value || null;
+        const hotelIn = document.getElementById("hotel_in")?.value || "";
+        const hotelOut = document.getElementById("hotel_out")?.value || "";
         
-        // Si todos los campos están vacíos, retornar null
-        if (!nombreHotel && !tipoHabitacion && !ciudad && !categoria) {
+        // Si todos los campos obligatorios están vacíos, retornar null
+        if (!nombreHotel && !tipoHabitacion && !ciudad && !hotelIn && !hotelOut) {
           return null;
         }
         
@@ -1693,7 +1785,9 @@ async function ejecutarCrearReserva() {
           nombre_hotel: nombreHotel,
           tipo_habitacion: tipoHabitacion,
           Ciudad: ciudad,
-          Categoria: categoria || null
+          Categoria: categoria || null,
+          in: hotelIn,
+          out: hotelOut
         };
       })(),
       checkIn: document.getElementById("checkIn")?.value || "",
@@ -1767,6 +1861,59 @@ async function ejecutarCrearReserva() {
     }
     if (!datosReserva.cliente || datosReserva.cliente.trim() === "") {
       camposFaltantes.push("Cliente");
+    }
+    
+    // Validar campos obligatorios del hotel
+    if (!datosReserva.hotel || typeof datosReserva.hotel !== 'object') {
+      camposFaltantes.push("Hotel: Todos los campos son obligatorios");
+    } else {
+      if (!datosReserva.hotel.nombre_hotel || datosReserva.hotel.nombre_hotel.trim() === "") {
+        camposFaltantes.push("Hotel: Nombre");
+      }
+      if (!datosReserva.hotel.tipo_habitacion || datosReserva.hotel.tipo_habitacion.trim() === "") {
+        camposFaltantes.push("Hotel: Tipo de Habitación");
+      }
+      if (!datosReserva.hotel.Ciudad || datosReserva.hotel.Ciudad.trim() === "") {
+        camposFaltantes.push("Hotel: Ciudad");
+      }
+      if (!datosReserva.hotel.in || datosReserva.hotel.in.trim() === "") {
+        camposFaltantes.push("Hotel: Fecha Entrada");
+      }
+      if (!datosReserva.hotel.out || datosReserva.hotel.out.trim() === "") {
+        camposFaltantes.push("Hotel: Fecha Salida");
+      }
+    }
+    
+    // Validar campos obligatorios de servicios
+    if (!datosReserva.services || datosReserva.services.length === 0) {
+      camposFaltantes.push("Servicios: Debe haber al menos un servicio");
+    } else {
+      datosReserva.services.forEach((servicio, index) => {
+        if (!servicio.destino || servicio.destino.trim() === "") {
+          camposFaltantes.push(`Servicio ${index + 1}: Destino`);
+        }
+        if (!servicio.in || servicio.in.trim() === "") {
+          camposFaltantes.push(`Servicio ${index + 1}: Fecha Entrada`);
+        }
+        if (!servicio.out || servicio.out.trim() === "") {
+          camposFaltantes.push(`Servicio ${index + 1}: Fecha Salida`);
+        }
+        if (!servicio.nts || servicio.nts === 0) {
+          camposFaltantes.push(`Servicio ${index + 1}: Noches`);
+        }
+        if (!servicio.basePax || servicio.basePax === 0) {
+          camposFaltantes.push(`Servicio ${index + 1}: Base Pax`);
+        }
+        if (!servicio.servicio || servicio.servicio.trim() === "") {
+          camposFaltantes.push(`Servicio ${index + 1}: Servicio`);
+        }
+        if (!servicio.descripcion || servicio.descripcion.trim() === "") {
+          camposFaltantes.push(`Servicio ${index + 1}: Descripción`);
+        }
+        if (!servicio.estado || servicio.estado.trim() === "") {
+          camposFaltantes.push(`Servicio ${index + 1}: Estado`);
+        }
+      });
     }
     
     // Si hay campos faltantes, mostrar error y no enviar
