@@ -18,7 +18,7 @@ const webpack = require("webpack");
 
 // URLs de PRODUCCIÓN (Azure)
 const urlProd = "https://gentle-ground-0e6ae2a1e.1.azurestaticapps.net/";
-const apiUrlProd = "https://aymara.canterasoft.com";
+const apiUrlProd = "https://app-itraffic-rpa.whiteflower-4df565a8.eastus2.azurecontainerapps.io";
 
 // URLs de DESARROLLO LOCAL (descomentadas solo para pruebas locales)
 const urlDev = "https://localhost:3000/";
