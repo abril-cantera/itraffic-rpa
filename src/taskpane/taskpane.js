@@ -1364,8 +1364,12 @@ function crearElementoServicio(index, servicio = {}, esDeExtraccion = false) {
   const requiredAttr = esDeExtraccion ? 'required' : '';
   const requiredSpan = esDeExtraccion ? '<span style="color: red;">*</span>' : '';
   
+  servicioDiv.dataset.servicioIndex = index;
   servicioDiv.innerHTML = `
-    <h4>Servicio ${index + 1}</h4>
+    <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 16px;">
+      <h4 style="margin: 0;">Servicio ${index + 1}</h4>
+      <button class="btn-eliminar-servicio" title="Eliminar servicio" data-servicio-index="${index}">✕</button>
+    </div>
     <div class="form-group">
       <label>Destino: ${requiredSpan}</label>
       <input type="text" id="servicio_destino_${index}" value="${servicio.destino || ''}" ${requiredAttr}>
@@ -1427,6 +1431,15 @@ function crearElementoServicio(index, servicio = {}, esDeExtraccion = false) {
         campo.addEventListener('input', actualizarEstadoBotonCrearReserva);
       }
     });
+    
+    // Agregar event listener al botón de eliminar
+    const btnEliminar = servicioDiv.querySelector('.btn-eliminar-servicio');
+    if (btnEliminar) {
+      btnEliminar.onclick = function(e) {
+        e.stopPropagation();
+        eliminarServicio(servicioDiv);
+      };
+    }
   }, 100);
   
   return servicioDiv;
@@ -1514,6 +1527,105 @@ function mostrarSeccionHotel() {
   
   // Actualizar estado del botón
   setTimeout(() => actualizarEstadoBotonCrearReserva(), 200);
+}
+
+/**
+ * Elimina un servicio del formulario
+ * @param {HTMLElement} servicioDiv - El elemento div del servicio a eliminar
+ */
+function eliminarServicio(servicioDiv) {
+  try {
+    const serviciosContainer = document.getElementById("serviciosContainer");
+    if (!serviciosContainer) return;
+    
+    const servicioItems = serviciosContainer.querySelectorAll(".servicio-item");
+    
+    // No permitir eliminar si solo hay un servicio y es de extracción (required)
+    if (servicioItems.length <= 1) {
+      const primerCampo = servicioDiv.querySelector("[required]");
+      if (primerCampo) {
+        mostrarMensaje("Debe haber al menos un servicio cuando vienen de la extracción", "info");
+        return;
+      }
+    }
+    
+    // Eliminar el servicio
+    servicioDiv.remove();
+    
+    // Renumerar servicios
+    renumerarServicios();
+    
+    mostrarMensaje("Servicio eliminado correctamente", "success");
+    
+    // Actualizar estado del botón después de eliminar
+    setTimeout(() => actualizarEstadoBotonCrearReserva(), 200);
+  } catch (error) {
+    mostrarMensaje("Error al eliminar servicio", "error");
+  }
+}
+
+/**
+ * Renumera los servicios después de eliminar uno
+ */
+function renumerarServicios() {
+  const serviciosContainer = document.getElementById("serviciosContainer");
+  if (!serviciosContainer) return;
+  
+  const servicioItems = Array.from(serviciosContainer.querySelectorAll(".servicio-item"));
+  
+  servicioItems.forEach((servicioDiv, index) => {
+    const nuevoIndex = index;
+    
+    // Actualizar el dataset
+    servicioDiv.dataset.servicioIndex = nuevoIndex;
+    
+    // Actualizar el título
+    const tituloDiv = servicioDiv.querySelector("div:first-child");
+    if (tituloDiv) {
+      const titulo = tituloDiv.querySelector("h4");
+      if (titulo) {
+        titulo.textContent = `Servicio ${nuevoIndex + 1}`;
+      }
+    }
+    
+    // Actualizar IDs de todos los campos - buscar por patrón dentro del div
+    const campos = [
+      'servicio_destino',
+      'servicio_in',
+      'servicio_out',
+      'servicio_nts',
+      'servicio_basePax',
+      'servicio_servicio',
+      'servicio_descripcion',
+      'servicio_estado'
+    ];
+    
+    campos.forEach(campoBase => {
+      // Buscar el campo dentro del servicioDiv por el patrón del ID
+      const campoViejo = servicioDiv.querySelector(`[id^="${campoBase}_"]`);
+      if (campoViejo) {
+        campoViejo.id = `${campoBase}_${nuevoIndex}`;
+        
+        // Actualizar el list del datalist si es el campo servicio
+        if (campoBase === 'servicio_servicio') {
+          const datalistId = `serviciosList_${nuevoIndex}`;
+          campoViejo.setAttribute('list', datalistId);
+          
+          // Actualizar el datalist
+          const datalist = servicioDiv.querySelector('datalist');
+          if (datalist) {
+            datalist.id = datalistId;
+          }
+        }
+      }
+    });
+    
+    // Actualizar el data-servicio-index del botón eliminar
+    const btnEliminar = servicioDiv.querySelector('.btn-eliminar-servicio');
+    if (btnEliminar) {
+      btnEliminar.setAttribute('data-servicio-index', nuevoIndex);
+    }
+  });
 }
 
 /**

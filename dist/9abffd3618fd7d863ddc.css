@@ -203,6 +203,33 @@ hr {
   transform: scale(0.95);
 }
 
+/* Botón eliminar servicio */
+.btn-eliminar-servicio {
+  background-color: transparent;
+  border: none;
+  color: #ef4444;
+  font-size: 1.2rem;
+  font-weight: 700;
+  cursor: pointer;
+  padding: 4px 8px;
+  border-radius: 4px;
+  transition: all 0.2s ease;
+  line-height: 1;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.btn-eliminar-servicio:hover {
+  background-color: #fee2e2;
+  color: #dc2626;
+  transform: scale(1.1);
+}
+
+.btn-eliminar-servicio:active {
+  transform: scale(0.95);
+}
+
 /* Contenido del acordeón */
 .pasajero-content {
   padding: 20px 16px;
