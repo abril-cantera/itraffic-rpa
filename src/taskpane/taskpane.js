@@ -20,6 +20,11 @@ const masterData = {
   loaded: false
 };
 
+// Estado global para la extracción actual
+let extractionState = {
+  didExtractionExist: false
+};
+
 // Función para mostrar mensajes al usuario
 function mostrarMensaje(mensaje, tipo = "info") {
   // Crear elemento de mensaje
@@ -84,7 +89,7 @@ Office.onReady((info) => {
             // Ocultar resultados y volver a extraer
             const resultsDiv = document.getElementById("results");
             resultsDiv.style.display = "none";
-            run();
+            run(true);
           } catch (error) {
             mostrarMensaje("Error al re-extraer datos: " + error.message, "error");
           }
@@ -405,7 +410,7 @@ function poblarSelectsPasajero(numero) {
   }
 }
 
-async function run() {
+async function run(isReExtract = false) {
   try {
     // Ocultar el botón de extraer
     const runButton = document.getElementById("run");
@@ -430,7 +435,7 @@ async function run() {
           
           try {
             // Llamar al servicio de extracción con IA
-            const extractedData = await extraerDatosConIA(cuerpoCorreo);
+            const extractedData = await extraerDatosConIA(cuerpoCorreo, isReExtract);
             
             // Ocultar loader
             loader.style.display = "none";
@@ -439,8 +444,13 @@ async function run() {
             resultsDiv.style.display = "block";
             
             if (extractedData && extractedData.passengers && extractedData.passengers.length > 0) {
+              const didExtractionExist = extractedData.didExtractionExist || false;
+              
+              // Guardar el estado de la extracción globalmente
+              extractionState.didExtractionExist = didExtractionExist;
+              
               // Crear formularios según el número de pasajeros extraídos
-              crearFormulariosPasajeros(extractedData.passengers.length);
+              crearFormulariosPasajeros(extractedData.passengers.length, didExtractionExist);
               
               // Llenar los datos de los pasajeros
               llenarDatosPasajeros(extractedData.passengers);
@@ -448,7 +458,14 @@ async function run() {
               // Llenar los datos de la reserva
               llenarDatosReserva(extractedData);
               
-              mostrarMensaje(`✅ Datos extraídos: ${extractedData.passengers.length} pasajero(s)`, "success");
+              // Actualizar el texto del botón según si es crear o editar
+              actualizarTextoBotonReserva(didExtractionExist);
+              
+              if(didExtractionExist) {
+                mostrarMensaje(`✅ Hay una extracción de datos existente para el correo`, "success");
+              }else{
+                mostrarMensaje(`✅ Datos extraídos: ${extractedData.passengers.length} pasajero(s)`, "success");
+              }
             } else {
               // Si no se extrajeron pasajeros, crear un formulario vacío
               crearFormulariosPasajeros(1);
@@ -492,12 +509,12 @@ async function run() {
 /**
  * Llama al servicio de extracción con IA
  */
-async function extraerDatosConIA(emailContent) {
+async function extraerDatosConIA(emailContent, isReExtract = false) {
   // Usar la variable global RPA_API_URL inyectada por webpack
   const extractUrl = typeof RPA_API_URL !== 'undefined'
     ? RPA_API_URL + '/api/extract'
     : 'http://localhost:3001/api/extract';
-  
+  const mailbox = Office.context.mailbox;
   const response = await fetch(extractUrl, {
     method: 'POST',
     headers: {
@@ -505,7 +522,9 @@ async function extraerDatosConIA(emailContent) {
     },
     body: JSON.stringify({
       emailContent: emailContent,
-      userId: Office.context.mailbox.userProfile.emailAddress || 'outlook-user'
+      userId: mailbox.userProfile.emailAddress || 'outlook-user',
+      conversationId: mailbox.item.conversationId || 'conversation-id',
+      isReExtract: isReExtract
     })
   });
 
@@ -518,7 +537,7 @@ async function extraerDatosConIA(emailContent) {
   return result.data;
 }
 
-function crearFormulariosPasajeros(numeroPasajeros) {
+function crearFormulariosPasajeros(numeroPasajeros, didExtractionExist = false) {
   const container = document.getElementById("pasajerosContainer");
   container.innerHTML = ""; // Limpiar contenedor
   
@@ -1794,6 +1813,22 @@ function validarCamposObligatorios() {
 }
 
 /**
+ * Actualiza el texto del botón según si es crear o editar
+ * @param {boolean} isEdit - Si es true, muestra "Editar Reserva"; si es false, muestra "Crear Reserva"
+ */
+function actualizarTextoBotonReserva(isEdit = false) {
+  const boton = document.getElementById("crearReserva");
+  if (!boton) return;
+  
+  const label = boton.querySelector('.ms-Button-label');
+  if (label) {
+    label.textContent = isEdit 
+      ? "✏️ Editar Reserva en iTraffic" 
+      : "🚀 Crear Reserva en iTraffic";
+  }
+}
+
+/**
  * Actualiza el estado del botón "Crear Reserva" según la validación
  */
 function actualizarEstadoBotonCrearReserva() {
@@ -1801,6 +1836,10 @@ function actualizarEstadoBotonCrearReserva() {
   if (!boton) return;
   
   const esValido = validarCamposObligatorios();
+  const didExtractionExist = extractionState.didExtractionExist || false;
+  
+  // Actualizar el texto del botón según el estado
+  actualizarTextoBotonReserva(didExtractionExist);
   
   if (esValido) {
     boton.disabled = false;
@@ -2103,6 +2142,10 @@ async function ejecutarCrearReserva() {
       estadoDeuda: document.getElementById("estadoDeuda")?.value || ""
     };
     
+    // Agregar conversationId del email actual
+    const item = Office.context.mailbox.item;
+    datosReserva.conversationId = item.conversationId || null;
+    
     // Capturar servicios
     const servicios = [];
     const serviciosContainer = document.getElementById("serviciosContainer");
@@ -2262,8 +2305,14 @@ async function ejecutarCrearReserva() {
       return; // NO enviar al RPA
     }
     
-    // Mostrar mensaje de procesamiento
-    mostrarMensaje("Creando reserva en iTraffic... Por favor espere.", "info");
+    // Obtener el estado de si la extracción existía
+    const didExtractionExist = extractionState.didExtractionExist || false;
+    
+    // Mostrar mensaje de procesamiento según si es crear o editar
+    const mensajeProcesamiento = didExtractionExist 
+      ? "Editando reserva en iTraffic... Por favor espere." 
+      : "Creando reserva en iTraffic... Por favor espere.";
+    mostrarMensaje(mensajeProcesamiento, "info");
     
     // DESHABILITAR TODOS LOS CAMPOS
     deshabilitarFormularios();
@@ -2276,16 +2325,24 @@ async function ejecutarCrearReserva() {
       botonCrearReserva.querySelector('.ms-Button-label').textContent = "⏳ Procesando...";
     }
     
-    // Llamar al servicio RPA con los datos de pasajeros y reserva
-    const resultado = await crearReservaEnITraffic(todosPasajeros, datosReserva);
+    // Llamar al servicio RPA con los datos de pasajeros y reserva, pasando el estado
+    const resultado = await crearReservaEnITraffic(todosPasajeros, datosReserva, didExtractionExist);
     
-    mostrarMensaje("¡Reserva creada exitosamente en iTraffic!", "success");
+    // Mostrar mensaje de éxito según si es crear o editar
+    const mensajeExito = didExtractionExist 
+      ? "¡Reserva editada exitosamente en iTraffic!" 
+      : "¡Reserva creada exitosamente en iTraffic!";
+    mostrarMensaje(mensajeExito, "success");
     
     // CONVERTIR A MODO LECTURA
     convertirAModoLectura();
     
   } catch (error) {
-    mostrarMensaje("Error al crear reserva: " + error.message, "error");
+    const didExtractionExist = extractionState.didExtractionExist || false;
+    const mensajeError = didExtractionExist 
+      ? "Error al editar reserva: " + error.message 
+      : "Error al crear reserva: " + error.message;
+    mostrarMensaje(mensajeError, "error");
     // En caso de error, rehabilitar los formularios
     habilitarFormularios();
   }
@@ -2345,9 +2402,10 @@ function habilitarFormularios() {
   // Habilitar botón de crear reserva
   const botonCrearReserva = document.getElementById("crearReserva");
   if (botonCrearReserva) {
+    const didExtractionExist = extractionState.didExtractionExist || false;
     botonCrearReserva.disabled = false;
     botonCrearReserva.style.opacity = "1";
-    botonCrearReserva.querySelector('.ms-Button-label').textContent = "🚀 Crear Reserva en iTraffic";
+    actualizarTextoBotonReserva(didExtractionExist);
   }
 }
 
