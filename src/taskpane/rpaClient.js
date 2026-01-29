@@ -3,11 +3,15 @@
  * Este archivo maneja la comunicación entre el add-in de Outlook y el servidor RPA
  */
 
-// URL del servidor RPA (se configura dinámicamente según el entorno)
-// En producción, esta URL se inyecta durante el build de webpack
-const RPA_SERVICE_URL = typeof RPA_API_URL !== 'undefined' 
+// URLs del servidor RPA (se configuran dinámicamente según el entorno)
+// En producción, estas URLs se inyectan durante el build de webpack
+const RPA_CREATE_URL = typeof RPA_API_URL !== 'undefined' 
   ? RPA_API_URL + '/api/rpa/create-reservation'
   : 'http://localhost:3001/api/rpa/create-reservation';
+
+const RPA_EDIT_URL = typeof RPA_API_URL !== 'undefined' 
+  ? RPA_API_URL + '/api/rpa/edit-reservation'
+  : 'http://localhost:3001/api/rpa/edit-reservation';
 
 /**
  * Transforma los datos del formulario al formato esperado por el RPA
@@ -30,6 +34,7 @@ function transformarDatosParaRPA(pasajeros, datosReserva = {}) {
       phoneNumber: p.telefono || '',
       direccion: p.direccion || ''
     })),
+    conversationId: datosReserva.conversationId || null,
     reservationType: datosReserva.tipoReserva || 'AGENCIAS [COAG]',
     status: datosReserva.estadoReserva || 'PENDIENTE DE CONFIRMACION [PC]',
     client: datosReserva.cliente || 'DESPEGAR - TEST - 1',
@@ -61,7 +66,8 @@ function transformarDatosParaRPA(pasajeros, datosReserva = {}) {
     checkOut: formatearFecha(datosReserva.checkOut) || '',
     estadoDeuda: datosReserva.estadoDeuda || '',
     services: datosReserva.services || [],
-    flights: datosReserva.flights || []
+    flights: datosReserva.flights || [],
+    conversationId: datosReserva.conversationId || null
   };
 }
 
@@ -82,18 +88,22 @@ function formatearFecha(fecha) {
 }
 
 /**
- * Envía los datos al servicio RPA para crear la reserva
+ * Envía los datos al servicio RPA para crear o editar la reserva
  * @param {Array} pasajeros - Array de objetos con datos de pasajeros del formulario
  * @param {Object} datosReserva - Datos de la reserva del formulario
+ * @param {boolean} isEdit - Si es true, edita la reserva; si es false, crea una nueva
  * @returns {Promise<Object>} Resultado de la operación
  */
-export async function crearReservaEnITraffic(pasajeros, datosReserva = {}) {
+export async function crearReservaEnITraffic(pasajeros, datosReserva = {}, isEdit = false) {
   try {
     // Transformar datos al formato del RPA
     const datosRPA = transformarDatosParaRPA(pasajeros, datosReserva);
     
+    // Seleccionar la URL según si es crear o editar
+    const serviceUrl = isEdit ? RPA_EDIT_URL : RPA_CREATE_URL;
+    
     // Enviar petición al servidor RPA
-    const response = await fetch(RPA_SERVICE_URL, {
+    const response = await fetch(serviceUrl, {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',
@@ -110,7 +120,7 @@ export async function crearReservaEnITraffic(pasajeros, datosReserva = {}) {
     return {
       success: true,
       data: resultado,
-      message: 'Reserva creada exitosamente en iTraffic'
+      message: isEdit ? 'Reserva editada exitosamente en iTraffic' : 'Reserva creada exitosamente en iTraffic'
     };
     
   } catch (error) {
