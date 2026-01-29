@@ -444,10 +444,19 @@ async function run(isReExtract = false) {
             resultsDiv.style.display = "block";
             
             if (extractedData && extractedData.passengers && extractedData.passengers.length > 0) {
-              const didExtractionExist = extractedData.didExtractionExist || false;
+              // Convertir explícitamente a booleano (puede venir como string "true"/"false" o booleano)
+              const didExtractionExistRaw = extractedData.didExtractionExist;
+              const didExtractionExist = didExtractionExistRaw === true || didExtractionExistRaw === 'true' || didExtractionExistRaw === 1;
+              
+              // Log para debug
+              console.log('🔍 didExtractionExist recibido:', didExtractionExistRaw, 'tipo:', typeof didExtractionExistRaw);
+              console.log('🔍 didExtractionExist convertido:', didExtractionExist);
               
               // Guardar el estado de la extracción globalmente
               extractionState.didExtractionExist = didExtractionExist;
+              
+              // Log para verificar que se guardó correctamente
+              console.log('💾 extractionState.didExtractionExist guardado:', extractionState.didExtractionExist);
               
               // Crear formularios según el número de pasajeros extraídos
               crearFormulariosPasajeros(extractedData.passengers.length, didExtractionExist);
@@ -534,7 +543,14 @@ async function extraerDatosConIA(emailContent, isReExtract = false) {
   }
 
   const result = await response.json();
-  return result.data;
+  
+  // Incluir didExtractionExist del nivel superior en el objeto data
+  const dataWithExtractionState = {
+    ...result.data,
+    didExtractionExist: result.didExtractionExist || false
+  };
+  
+  return dataWithExtractionState;
 }
 
 function crearFormulariosPasajeros(numeroPasajeros, didExtractionExist = false) {
@@ -1822,9 +1838,11 @@ function actualizarTextoBotonReserva(isEdit = false) {
   
   const label = boton.querySelector('.ms-Button-label');
   if (label) {
-    label.textContent = isEdit 
+    const texto = isEdit 
       ? "✏️ Editar Reserva en iTraffic" 
       : "🚀 Crear Reserva en iTraffic";
+    label.textContent = texto;
+    console.log('📝 Texto del botón actualizado:', texto, 'isEdit:', isEdit);
   }
 }
 
@@ -1836,7 +1854,10 @@ function actualizarEstadoBotonCrearReserva() {
   if (!boton) return;
   
   const esValido = validarCamposObligatorios();
-  const didExtractionExist = extractionState.didExtractionExist || false;
+  const didExtractionExist = extractionState.didExtractionExist === true;
+  
+  // Log para debug
+  console.log('🔄 actualizarEstadoBotonCrearReserva - didExtractionExist:', didExtractionExist, 'extractionState:', extractionState);
   
   // Actualizar el texto del botón según el estado
   actualizarTextoBotonReserva(didExtractionExist);
@@ -2305,8 +2326,11 @@ async function ejecutarCrearReserva() {
       return; // NO enviar al RPA
     }
     
-    // Obtener el estado de si la extracción existía
-    const didExtractionExist = extractionState.didExtractionExist || false;
+    // Obtener el estado de si la extracción existía (convertir explícitamente a booleano)
+    const didExtractionExist = extractionState.didExtractionExist === true;
+    
+    // Log para debug
+    console.log('🚀 ejecutarCrearReserva - didExtractionExist:', didExtractionExist, 'extractionState:', extractionState);
     
     // Mostrar mensaje de procesamiento según si es crear o editar
     const mensajeProcesamiento = didExtractionExist 
@@ -2338,7 +2362,7 @@ async function ejecutarCrearReserva() {
     convertirAModoLectura();
     
   } catch (error) {
-    const didExtractionExist = extractionState.didExtractionExist || false;
+    const didExtractionExist = extractionState.didExtractionExist === true;
     const mensajeError = didExtractionExist 
       ? "Error al editar reserva: " + error.message 
       : "Error al crear reserva: " + error.message;
@@ -2402,7 +2426,7 @@ function habilitarFormularios() {
   // Habilitar botón de crear reserva
   const botonCrearReserva = document.getElementById("crearReserva");
   if (botonCrearReserva) {
-    const didExtractionExist = extractionState.didExtractionExist || false;
+    const didExtractionExist = extractionState.didExtractionExist === true;
     botonCrearReserva.disabled = false;
     botonCrearReserva.style.opacity = "1";
     actualizarTextoBotonReserva(didExtractionExist);
