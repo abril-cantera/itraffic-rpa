@@ -22,7 +22,8 @@ const masterData = {
 
 // Estado global para la extracción actual
 let extractionState = {
-  didExtractionExist: false
+  didExtractionExist: false,
+  reservationCode: null
 };
 
 // Función para mostrar mensajes al usuario
@@ -454,9 +455,11 @@ async function run(isReExtract = false) {
               
               // Guardar el estado de la extracción globalmente
               extractionState.didExtractionExist = didExtractionExist;
+              extractionState.reservationCode = extractedData.reservationCode || null;
               
               // Log para verificar que se guardó correctamente
               console.log('💾 extractionState.didExtractionExist guardado:', extractionState.didExtractionExist);
+              console.log('💾 extractionState.reservationCode guardado:', extractionState.reservationCode);
               
               // Crear formularios según el número de pasajeros extraídos
               crearFormulariosPasajeros(extractedData.passengers.length, didExtractionExist);
@@ -2135,7 +2138,7 @@ async function ejecutarCrearReserva() {
       children: parseInt(document.getElementById("ninos")?.value) || 0,
       infants: parseInt(document.getElementById("infantes")?.value) || 0,
       provider: document.getElementById("proveedor")?.value || "",
-      reservationCode: document.getElementById("codigoReserva")?.value || "",
+      reservationCode: document.getElementById("codigoReserva")?.value || extractionState.reservationCode || "",
       hotel: (() => {
         const nombreHotel = document.getElementById("hotel_nombre")?.value || "";
         const tipoHabitacion = document.getElementById("hotel_tipo_habitacion")?.value || "";
