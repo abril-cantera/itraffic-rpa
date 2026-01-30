@@ -23,7 +23,8 @@ const masterData = {
 // Estado global para la extracción actual
 let extractionState = {
   didExtractionExist: false,
-  reservationCode: null
+  reservationCode: null,
+  originData: null // Data original de la extracción
 };
 
 // Función para mostrar mensajes al usuario
@@ -457,9 +458,15 @@ async function run(isReExtract = false) {
               extractionState.didExtractionExist = didExtractionExist;
               extractionState.reservationCode = extractedData.reservationCode || null;
               
+              // Guardar la data original completa de la extracción (para comparación al editar)
+              if (didExtractionExist) {
+                extractionState.originData = JSON.parse(JSON.stringify(extractedData)); // Deep copy
+              }
+              
               // Log para verificar que se guardó correctamente
               console.log('💾 extractionState.didExtractionExist guardado:', extractionState.didExtractionExist);
               console.log('💾 extractionState.reservationCode guardado:', extractionState.reservationCode);
+              console.log('💾 extractionState.originData guardado:', extractionState.originData);
               
               // Crear formularios según el número de pasajeros extraídos
               crearFormulariosPasajeros(extractedData.passengers.length, didExtractionExist);
@@ -2352,8 +2359,9 @@ async function ejecutarCrearReserva() {
       botonCrearReserva.querySelector('.ms-Button-label').textContent = "⏳ Procesando...";
     }
     
-    // Llamar al servicio RPA con los datos de pasajeros y reserva, pasando el estado
-    const resultado = await crearReservaEnITraffic(todosPasajeros, datosReserva, didExtractionExist);
+    // Llamar al servicio RPA con los datos de pasajeros y reserva, pasando el estado y la data original si es edición
+    const originData = didExtractionExist ? extractionState.originData : null;
+    const resultado = await crearReservaEnITraffic(todosPasajeros, datosReserva, didExtractionExist, originData);
     
     // Mostrar mensaje de éxito según si es crear o editar
     const mensajeExito = didExtractionExist 

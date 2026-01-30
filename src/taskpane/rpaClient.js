@@ -17,10 +17,12 @@ const RPA_EDIT_URL = typeof RPA_API_URL !== 'undefined'
  * Transforma los datos del formulario al formato esperado por el RPA
  * @param {Array} pasajeros - Array de objetos con datos de pasajeros
  * @param {Object} datosReserva - Datos de la reserva del formulario
+ * @param {boolean} isEdit - Si es true, incluye originData
+ * @param {Object} originData - Data original de la extracción (solo para edición)
  * @returns {Object} Datos formateados para el RPA
  */
-function transformarDatosParaRPA(pasajeros, datosReserva = {}) {
-  return {
+function transformarDatosParaRPA(pasajeros, datosReserva = {}, isEdit = false, originData = null) {
+  const datosRPA = {
     passengers: pasajeros.map(p => ({
       lastName: p.apellido || '',
       firstName: p.nombre || '',
@@ -69,6 +71,13 @@ function transformarDatosParaRPA(pasajeros, datosReserva = {}) {
     flights: datosReserva.flights || [],
     conversationId: datosReserva.conversationId || null
   };
+  
+  // Si es edición, incluir la data original
+  if (isEdit && originData) {
+    datosRPA.originData = originData;
+  }
+  
+  return datosRPA;
 }
 
 /**
@@ -92,12 +101,13 @@ function formatearFecha(fecha) {
  * @param {Array} pasajeros - Array de objetos con datos de pasajeros del formulario
  * @param {Object} datosReserva - Datos de la reserva del formulario
  * @param {boolean} isEdit - Si es true, edita la reserva; si es false, crea una nueva
+ * @param {Object} originData - Data original de la extracción (solo para edición)
  * @returns {Promise<Object>} Resultado de la operación
  */
-export async function crearReservaEnITraffic(pasajeros, datosReserva = {}, isEdit = false) {
+export async function crearReservaEnITraffic(pasajeros, datosReserva = {}, isEdit = false, originData = null) {
   try {
     // Transformar datos al formato del RPA
-    const datosRPA = transformarDatosParaRPA(pasajeros, datosReserva);
+    const datosRPA = transformarDatosParaRPA(pasajeros, datosReserva, isEdit, originData);
     
     // Seleccionar la URL según si es crear o editar
     const serviceUrl = isEdit ? RPA_EDIT_URL : RPA_CREATE_URL;
