@@ -128,9 +128,10 @@ export async function crearReservaEnITraffic(pasajeros, datosReserva = {}, isEdi
     const resultado = await response.json();
     
     return {
-      success: true,
-      data: resultado,
-      message: isEdit ? 'Reserva editada exitosamente en iTraffic' : 'Reserva creada exitosamente en iTraffic'
+      success: resultado.success !== false,
+      data: resultado.data || resultado,
+      reservationCode: resultado.reservationCode || null,
+      message: resultado.message || (isEdit ? 'Reserva editada exitosamente en iTraffic' : 'Reserva creada exitosamente en iTraffic')
     };
     
   } catch (error) {

@@ -2077,6 +2077,186 @@ function convertirAModoLectura() {
 }
 
 /**
+ * Compara dos objetos de datos para detectar cambios en pasajeros, servicios y hotel
+ * @param {Object} originData - Data original de la extracción
+ * @param {Array} nuevosPasajeros - Pasajeros actuales del formulario
+ * @param {Array} nuevosServicios - Servicios actuales del formulario
+ * @param {Object} nuevoHotel - Hotel actual del formulario
+ * @returns {Object} Objeto con información sobre los cambios detectados
+ */
+function compararDatos(originData, nuevosPasajeros, nuevosServicios, nuevoHotel) {
+  const cambios = {
+    pasajeros: false,
+    servicios: false,
+    hotel: false,
+    tieneCambios: false
+  };
+  
+  if (!originData) {
+    return cambios;
+  }
+  
+  // Comparar pasajeros
+  const pasajerosOriginales = originData.passengers || [];
+  if (pasajerosOriginales.length !== nuevosPasajeros.length) {
+    cambios.pasajeros = true;
+    cambios.tieneCambios = true;
+  } else {
+    // Comparar cada pasajero
+    for (let i = 0; i < nuevosPasajeros.length; i++) {
+      const nuevo = nuevosPasajeros[i];
+      const original = pasajerosOriginales[i];
+      
+      if (!original || 
+          nuevo.nombre !== (original.firstName || '') ||
+          nuevo.apellido !== (original.lastName || '') ||
+          nuevo.dni !== (original.documentNumber || '') ||
+          nuevo.fechaNacimiento !== (original.dateOfBirth || '')) {
+        cambios.pasajeros = true;
+        cambios.tieneCambios = true;
+        break;
+      }
+    }
+  }
+  
+  // Comparar servicios
+  const serviciosOriginales = originData.services || [];
+  if (serviciosOriginales.length !== nuevosServicios.length) {
+    cambios.servicios = true;
+    cambios.tieneCambios = true;
+  } else {
+    // Comparar cada servicio
+    for (let i = 0; i < nuevosServicios.length; i++) {
+      const nuevo = nuevosServicios[i];
+      const original = serviciosOriginales[i];
+      
+      if (!original ||
+          nuevo.destino !== (original.destino || '') ||
+          nuevo.in !== (original.in || '') ||
+          nuevo.out !== (original.out || '') ||
+          nuevo.servicio !== (original.servicio || '')) {
+        cambios.servicios = true;
+        cambios.tieneCambios = true;
+        break;
+      }
+    }
+  }
+  
+  // Comparar hotel
+  const hotelOriginal = originData.hotel || null;
+  if ((hotelOriginal === null && nuevoHotel !== null) ||
+      (hotelOriginal !== null && nuevoHotel === null)) {
+    cambios.hotel = true;
+    cambios.tieneCambios = true;
+  } else if (hotelOriginal && nuevoHotel) {
+    if (hotelOriginal.nombre_hotel !== nuevoHotel.nombre_hotel ||
+        hotelOriginal.Ciudad !== nuevoHotel.Ciudad ||
+        hotelOriginal.in !== nuevoHotel.in ||
+        hotelOriginal.out !== nuevoHotel.out) {
+      cambios.hotel = true;
+      cambios.tieneCambios = true;
+    }
+  }
+  
+  return cambios;
+}
+
+/**
+ * Muestra un modal de confirmación cuando hay cambios en pasajeros, servicios o hotel
+ * @param {Object} cambios - Objeto con información sobre los cambios detectados
+ * @returns {Promise<boolean>} true si el usuario confirma, false si cancela
+ */
+function mostrarModalConfirmacion(cambios) {
+  return new Promise((resolve) => {
+    // Crear overlay
+    const overlay = document.createElement('div');
+    overlay.style.cssText = `
+      position: fixed;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100%;
+      background: rgba(0, 0, 0, 0.5);
+      z-index: 10001;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+    `;
+    
+    // Crear modal
+    const modal = document.createElement('div');
+    modal.style.cssText = `
+      background: white;
+      padding: 24px;
+      border-radius: 8px;
+      max-width: 500px;
+      width: 90%;
+      box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+    `;
+    
+    // Lista de cambios
+    const cambiosLista = [];
+    if (cambios.pasajeros) cambiosLista.push('Pasajeros');
+    if (cambios.servicios) cambiosLista.push('Servicios');
+    if (cambios.hotel) cambiosLista.push('Hotel');
+    
+    modal.innerHTML = `
+      <h3 style="margin-top: 0; margin-bottom: 16px; color: #d32f2f;">⚠️ Advertencia</h3>
+      <p style="margin-bottom: 16px; line-height: 1.5;">
+        Se detectaron cambios en los siguientes elementos que serán <strong>reemplazados</strong>:
+      </p>
+      <ul style="margin-bottom: 20px; padding-left: 20px;">
+        ${cambiosLista.map(item => `<li style="margin-bottom: 8px;">${item}</li>`).join('')}
+      </ul>
+      <p style="margin-bottom: 20px; color: #666; font-size: 14px;">
+        ¿Desea continuar con la edición?
+      </p>
+      <div style="display: flex; gap: 12px; justify-content: flex-end;">
+        <button id="modalCancelar" style="
+          padding: 10px 20px;
+          border: 1px solid #ccc;
+          background: white;
+          border-radius: 4px;
+          cursor: pointer;
+          font-size: 14px;
+        ">Cancelar</button>
+        <button id="modalContinuar" style="
+          padding: 10px 20px;
+          border: none;
+          background: #0078d4;
+          color: white;
+          border-radius: 4px;
+          cursor: pointer;
+          font-size: 14px;
+        ">Continuar</button>
+      </div>
+    `;
+    
+    overlay.appendChild(modal);
+    document.body.appendChild(overlay);
+    
+    // Event listeners
+    document.getElementById('modalCancelar').onclick = () => {
+      document.body.removeChild(overlay);
+      resolve(false);
+    };
+    
+    document.getElementById('modalContinuar').onclick = () => {
+      document.body.removeChild(overlay);
+      resolve(true);
+    };
+    
+    // Cerrar al hacer click fuera del modal
+    overlay.onclick = (e) => {
+      if (e.target === overlay) {
+        document.body.removeChild(overlay);
+        resolve(false);
+      }
+    };
+  });
+}
+
+/**
  * Ejecuta la creación de reserva en iTraffic usando RPA
  */
 async function ejecutarCrearReserva() {
@@ -2342,6 +2522,25 @@ async function ejecutarCrearReserva() {
     // Log para debug
     console.log('🚀 ejecutarCrearReserva - didExtractionExist:', didExtractionExist, 'extractionState:', extractionState);
     
+    // Si es edición, validar cambios antes de continuar
+    if (didExtractionExist && extractionState.originData) {
+      // Capturar servicios y hotel para comparación
+      const servicios = datosReserva.services || [];
+      const hotel = datosReserva.hotel || null;
+      
+      // Comparar datos
+      const cambios = compararDatos(extractionState.originData, todosPasajeros, servicios, hotel);
+      
+      // Si hay cambios, mostrar modal de confirmación
+      if (cambios.tieneCambios) {
+        const confirmar = await mostrarModalConfirmacion(cambios);
+        if (!confirmar) {
+          // El usuario canceló, no hacer nada
+          return;
+        }
+      }
+    }
+    
     // Mostrar mensaje de procesamiento según si es crear o editar
     const mensajeProcesamiento = didExtractionExist 
       ? "Editando reserva en iTraffic... Por favor espere." 
@@ -2363,10 +2562,18 @@ async function ejecutarCrearReserva() {
     const originData = didExtractionExist ? extractionState.originData : null;
     const resultado = await crearReservaEnITraffic(todosPasajeros, datosReserva, didExtractionExist, originData);
     
-    // Mostrar mensaje de éxito según si es crear o editar
-    const mensajeExito = didExtractionExist 
+    // Obtener reservationCode de la respuesta
+    const reservationCode = resultado.data?.reservationCode || resultado.reservationCode || null;
+    
+    // Mostrar mensaje de éxito según si es crear o editar, incluyendo el código de reserva si existe
+    let mensajeExito = didExtractionExist 
       ? "¡Reserva editada exitosamente en iTraffic!" 
       : "¡Reserva creada exitosamente en iTraffic!";
+    
+    if (reservationCode) {
+      mensajeExito += ` Código de la reserva: ${reservationCode}`;
+    }
+    
     mostrarMensaje(mensajeExito, "success");
     
     // CONVERTIR A MODO LECTURA
