@@ -121,11 +121,13 @@ export async function crearReservaEnITraffic(pasajeros, datosReserva = {}, isEdi
       body: JSON.stringify(datosRPA)
     });
     
-    if (!response.ok) {
-      throw new Error(`Error del servidor: ${response.status} ${response.statusText}`);
-    }
-    
     const resultado = await response.json();
+    
+    // Si la respuesta no es exitosa o success es false, lanzar error con el mensaje del backend
+    if (!response.ok || resultado.success === false) {
+      const errorMessage = resultado.error || resultado.message || `Error del servidor: ${response.status} ${response.statusText}`;
+      throw new Error(errorMessage);
+    }
     
     return {
       success: resultado.success !== false,
