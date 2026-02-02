@@ -2154,7 +2154,6 @@ function convertirAModoLectura() {
       }
     });
   }
-}
   
   // Convertir datos de reserva a modo lectura
   const datosReservaSection = document.getElementById("datosReservaSection");
@@ -2206,6 +2205,25 @@ function convertirAModoLectura() {
       datosReservaSection.appendChild(botonCrearOtra);
     }
   }
+  
+  // Ocultar botón de agregar pasajero
+  const btnAgregar = document.getElementById("agregarPasajero");
+  if (btnAgregar) {
+    btnAgregar.style.display = "none";
+  }
+  
+  // Ocultar botón de guardar
+  const btnGuardar = document.getElementById("guardar");
+  if (btnGuardar) {
+    btnGuardar.style.display = "none";
+  }
+  
+  // Ocultar botón de crear reserva
+  const btnCrearReserva = document.getElementById("crearReserva");
+  if (btnCrearReserva) {
+    btnCrearReserva.style.display = "none";
+  }
+}
 
 /**
  * Compara dos objetos de datos para detectar cambios en pasajeros, servicios y hotel
