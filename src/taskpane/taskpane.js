@@ -86,11 +86,17 @@ Office.onReady((info) => {
       // Asignar evento al botón de re-extraer
       const reextractButton = document.getElementById("reextract");
       if (reextractButton) {
+        // Ocultar inicialmente (solo se muestra cuando hay resultados)
+        reextractButton.style.display = "none";
+        
         reextractButton.onclick = function() {
           try {
             // Ocultar resultados y volver a extraer
             const resultsDiv = document.getElementById("results");
             resultsDiv.style.display = "none";
+            // Ocultar botón de re-extracción mientras se procesa
+            reextractButton.style.display = "none";
+            // Llamar a run con isReExtract = true
             run(true);
           } catch (error) {
             mostrarMensaje("Error al re-extraer datos: " + error.message, "error");
@@ -173,8 +179,14 @@ Office.onReady((info) => {
       camposHotel.forEach(campoId => {
         const campo = document.getElementById(campoId);
         if (campo) {
-          campo.addEventListener('change', actualizarEstadoBotonCrearReserva);
-          campo.addEventListener('input', actualizarEstadoBotonCrearReserva);
+          campo.addEventListener('change', () => {
+            validarFechasHotel();
+            actualizarEstadoBotonCrearReserva();
+          });
+          campo.addEventListener('input', () => {
+            validarFechasHotel();
+            actualizarEstadoBotonCrearReserva();
+          });
         }
       });
       
@@ -185,6 +197,51 @@ Office.onReady((info) => {
     // Error silencioso
   }
 });
+
+/**
+ * Valida las fechas del hotel en tiempo real
+ */
+function validarFechasHotel() {
+  const hotelIn = document.getElementById("hotel_in");
+  const hotelOut = document.getElementById("hotel_out");
+  
+  // Solo validar si ambos campos tienen valores
+  if (!hotelIn || !hotelOut || !hotelIn.value || !hotelOut.value) {
+    // Limpiar estilos de error si no hay valores
+    if (hotelIn) hotelIn.style.borderColor = '';
+    if (hotelOut) hotelOut.style.borderColor = '';
+    return;
+  }
+  
+  const fechaIn = new Date(hotelIn.value);
+  const fechaOut = new Date(hotelOut.value);
+  
+  // Verificar que las fechas sean válidas
+  if (isNaN(fechaIn.getTime()) || isNaN(fechaOut.getTime())) {
+    return;
+  }
+  
+  // Verificar que la fecha de salida sea posterior a la de entrada
+  if (fechaOut <= fechaIn) {
+    // Mostrar error visual
+    hotelIn.style.borderColor = '#d32f2f';
+    hotelOut.style.borderColor = '#d32f2f';
+    return;
+  }
+  
+  // Calcular la diferencia en días
+  const diferenciaDias = Math.floor((fechaOut - fechaIn) / (1000 * 60 * 60 * 24));
+  
+  if (diferenciaDias < 1) {
+    // Mostrar error visual
+    hotelIn.style.borderColor = '#d32f2f';
+    hotelOut.style.borderColor = '#d32f2f';
+  } else {
+    // Limpiar estilos de error
+    hotelIn.style.borderColor = '';
+    hotelOut.style.borderColor = '';
+  }
+}
 
 /**
  * Cargar datos maestros desde el servidor
@@ -445,6 +502,12 @@ async function run(isReExtract = false) {
             // Mostrar resultados
             resultsDiv.style.display = "block";
             
+            // Mostrar botón de re-extracción cuando hay resultados
+            const reextractButton = document.getElementById("reextract");
+            if (reextractButton) {
+              reextractButton.style.display = "block";
+            }
+            
             if (extractedData && extractedData.passengers && extractedData.passengers.length > 0) {
               // Convertir explícitamente a booleano (puede venir como string "true"/"false" o booleano)
               const didExtractionExistRaw = extractedData.didExtractionExist;
@@ -534,6 +597,10 @@ async function extraerDatosConIA(emailContent, isReExtract = false) {
     ? RPA_API_URL + '/api/extract'
     : 'http://localhost:3001/api/extract';
   const mailbox = Office.context.mailbox;
+  
+  // Log para verificar que isReExtract se está enviando
+  console.log('📤 Enviando extracción - isReExtract:', isReExtract, 'tipo:', typeof isReExtract);
+  
   const response = await fetch(extractUrl, {
     method: 'POST',
     headers: {
@@ -1936,6 +2003,73 @@ function deshabilitarFormularios() {
 }
 
 /**
+ * Resetea la aplicación al estado inicial
+ */
+function resetearAplicacion() {
+  // Ocultar resultados
+  const resultsDiv = document.getElementById("results");
+  if (resultsDiv) {
+    resultsDiv.style.display = "none";
+  }
+  
+  // Mostrar botón de extraer
+  const runButton = document.getElementById("run");
+  if (runButton) {
+    runButton.style.display = "block";
+  }
+  
+  // Ocultar botón de re-extracción
+  const reextractButton = document.getElementById("reextract");
+  if (reextractButton) {
+    reextractButton.style.display = "none";
+  }
+  
+  // Limpiar contenedores
+  const pasajerosContainer = document.getElementById("pasajerosContainer");
+  if (pasajerosContainer) {
+    pasajerosContainer.innerHTML = "";
+  }
+  
+  // Resetear estado de extracción
+  extractionState = {
+    didExtractionExist: false,
+    reservationCode: null,
+    originData: null
+  };
+  
+  // Limpiar formularios de reserva
+  const camposReserva = ['tipoReserva', 'estadoReserva', 'fechaViaje', 'vendedor', 'cliente'];
+  camposReserva.forEach(campoId => {
+    const campo = document.getElementById(campoId);
+    if (campo) {
+      campo.value = "";
+    }
+  });
+  
+  // Ocultar secciones de hotel y servicios
+  const hotelSection = document.getElementById("hotelSection");
+  if (hotelSection) {
+    hotelSection.style.display = "none";
+  }
+  
+  const serviciosSection = document.getElementById("serviciosSection");
+  if (serviciosSection) {
+    serviciosSection.style.display = "none";
+  }
+  
+  const vuelosSection = document.getElementById("vuelosSection");
+  if (vuelosSection) {
+    vuelosSection.style.display = "none";
+  }
+  
+  // Ocultar botón de crear otra reserva si existe
+  const botonCrearOtra = document.getElementById("crearOtraReserva");
+  if (botonCrearOtra) {
+    botonCrearOtra.remove();
+  }
+}
+
+/**
  * Convierte los formularios a modo lectura (texto plano)
  */
 function convertirAModoLectura() {
@@ -2020,6 +2154,7 @@ function convertirAModoLectura() {
       }
     });
   }
+}
   
   // Convertir datos de reserva a modo lectura
   const datosReservaSection = document.getElementById("datosReservaSection");
@@ -2055,26 +2190,22 @@ function convertirAModoLectura() {
         <p>${datosReserva.cliente || '-'}</p>
       </div>
     `;
+    
+    // Agregar botón "Crear otra reserva" dentro de la misma sección
+    if (!document.getElementById("crearOtraReserva")) {
+      const botonCrearOtra = document.createElement("button");
+      botonCrearOtra.id = "crearOtraReserva";
+      botonCrearOtra.className = "ms-Button";
+      botonCrearOtra.style.cssText = "margin-top: 20px; padding: 12px 24px; background: #0078d4; color: white; border: none; border-radius: 4px; cursor: pointer; font-size: 14px;";
+      botonCrearOtra.innerHTML = '<span class="ms-Button-label">➕ Crear otra reserva</span>';
+      botonCrearOtra.onclick = function() {
+        resetearAplicacion();
+      };
+      
+      // Insertar después de la sección de datos de reserva
+      datosReservaSection.appendChild(botonCrearOtra);
+    }
   }
-  
-  // Ocultar botón de agregar pasajero
-  const btnAgregar = document.getElementById("agregarPasajero");
-  if (btnAgregar) {
-    btnAgregar.style.display = "none";
-  }
-  
-  // Ocultar botón de guardar
-  const btnGuardar = document.getElementById("guardar");
-  if (btnGuardar) {
-    btnGuardar.style.display = "none";
-  }
-  
-  // Ocultar botón de crear reserva
-  const btnCrearReserva = document.getElementById("crearReserva");
-  if (btnCrearReserva) {
-    btnCrearReserva.style.display = "none";
-  }
-}
 
 /**
  * Compara dos objetos de datos para detectar cambios en pasajeros, servicios y hotel
@@ -2449,6 +2580,26 @@ async function ejecutarCrearReserva() {
       }
       if (hotelOut?.required && (!datosReserva.hotel?.out || datosReserva.hotel.out.trim() === "")) {
         camposFaltantes.push("Hotel: Fecha Salida");
+      }
+      
+      // Validar que las fechas de entrada y salida tengan al menos un día de diferencia
+      if (datosReserva.hotel?.in && datosReserva.hotel?.out) {
+        const fechaIn = new Date(datosReserva.hotel.in);
+        const fechaOut = new Date(datosReserva.hotel.out);
+        
+        // Verificar que la fecha de salida sea posterior a la de entrada
+        if (fechaOut <= fechaIn) {
+          mostrarMensaje("Las fechas del hotel no son válidas. La fecha de salida debe ser al menos un día posterior a la fecha de entrada.", "error");
+          return; // NO enviar al RPA
+        }
+        
+        // Calcular la diferencia en días
+        const diferenciaDias = Math.floor((fechaOut - fechaIn) / (1000 * 60 * 60 * 24));
+        
+        if (diferenciaDias < 1) {
+          mostrarMensaje("Las fechas del hotel deben tener al menos un día de diferencia. La fecha de salida debe ser posterior a la fecha de entrada.", "error");
+          return; // NO enviar al RPA
+        }
       }
     }
     
