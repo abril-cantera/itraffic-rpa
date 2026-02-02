@@ -22,10 +22,15 @@ const masterData = {
 
 // Estado global para la extracción actual
 let extractionState = {
-  didExtractionExist: false,
+  didExtractionExist: false, // Si existe una extracción (para isReExtract)
+  doesReservationExist: false, // Si existe una reserva (para determinar crear/editar)
   reservationCode: null,
-  originData: null // Data original de la extracción
+  originData: null, // Data original de la extracción
+  createdReservationCode: null // Código de reserva creada/editada
 };
+
+// Guardar HTML original de datosReservaSection para restaurarlo
+let datosReservaSectionOriginalHTML = null;
 
 // Función para mostrar mensajes al usuario
 function mostrarMensaje(mensaje, tipo = "info") {
@@ -59,6 +64,11 @@ function mostrarMensaje(mensaje, tipo = "info") {
 Office.onReady((info) => {
   try {
   if (info.host === Office.HostType.Outlook) {
+      // Guardar HTML original de datosReservaSection
+      const datosReservaSection = document.getElementById("datosReservaSection");
+      if (datosReservaSection) {
+        datosReservaSectionOriginalHTML = datosReservaSection.innerHTML;
+      }
       // Ocultar mensaje de sideload si existe
       const sideloadMsg = document.getElementById("sideload-msg");
       if (sideloadMsg) {
@@ -513,21 +523,30 @@ async function run(isReExtract = false) {
               const didExtractionExistRaw = extractedData.didExtractionExist;
               const didExtractionExist = didExtractionExistRaw === true || didExtractionExistRaw === 'true' || didExtractionExistRaw === 1;
               
+              // Convertir doesReservationExist a booleano
+              const doesReservationExistRaw = extractedData.doesReservationExist;
+              const doesReservationExist = doesReservationExistRaw === true || doesReservationExistRaw === 'true' || doesReservationExistRaw === 1;
+              
               // Log para debug
               console.log('🔍 didExtractionExist recibido:', didExtractionExistRaw, 'tipo:', typeof didExtractionExistRaw);
               console.log('🔍 didExtractionExist convertido:', didExtractionExist);
+              console.log('🔍 doesReservationExist recibido:', doesReservationExistRaw, 'tipo:', typeof doesReservationExistRaw);
+              console.log('🔍 doesReservationExist convertido:', doesReservationExist);
               
               // Guardar el estado de la extracción globalmente
               extractionState.didExtractionExist = didExtractionExist;
+              extractionState.doesReservationExist = doesReservationExist;
               extractionState.reservationCode = extractedData.reservationCode || null;
               
               // Guardar la data original completa de la extracción (para comparación al editar)
-              if (didExtractionExist) {
+              // Solo si existe una reserva (doesReservationExist), no solo una extracción
+              if (doesReservationExist) {
                 extractionState.originData = JSON.parse(JSON.stringify(extractedData)); // Deep copy
               }
               
               // Log para verificar que se guardó correctamente
               console.log('💾 extractionState.didExtractionExist guardado:', extractionState.didExtractionExist);
+              console.log('💾 extractionState.doesReservationExist guardado:', extractionState.doesReservationExist);
               console.log('💾 extractionState.reservationCode guardado:', extractionState.reservationCode);
               console.log('💾 extractionState.originData guardado:', extractionState.originData);
               
@@ -540,8 +559,8 @@ async function run(isReExtract = false) {
               // Llenar los datos de la reserva
               llenarDatosReserva(extractedData);
               
-              // Actualizar el texto del botón según si es crear o editar
-              actualizarTextoBotonReserva(didExtractionExist);
+              // Actualizar el texto del botón según si es crear o editar (usar doesReservationExist)
+              actualizarTextoBotonReserva(doesReservationExist);
               
               if(didExtractionExist) {
                 mostrarMensaje(`✅ Hay una extracción de datos existente para el correo`, "success");
@@ -621,10 +640,11 @@ async function extraerDatosConIA(emailContent, isReExtract = false) {
 
   const result = await response.json();
   
-  // Incluir didExtractionExist del nivel superior en el objeto data
+  // Incluir didExtractionExist y doesReservationExist del nivel superior en el objeto data
   const dataWithExtractionState = {
     ...result.data,
-    didExtractionExist: result.didExtractionExist || false
+    didExtractionExist: result.didExtractionExist || false,
+    doesReservationExist: result.doesReservationExist || false
   };
   
   return dataWithExtractionState;
@@ -1997,13 +2017,13 @@ function actualizarEstadoBotonCrearReserva() {
   if (!boton) return;
   
   const esValido = validarCamposObligatorios();
-  const didExtractionExist = extractionState.didExtractionExist === true;
+  const doesReservationExist = extractionState.doesReservationExist === true;
   
   // Log para debug
-  console.log('🔄 actualizarEstadoBotonCrearReserva - didExtractionExist:', didExtractionExist, 'extractionState:', extractionState);
+  console.log('🔄 actualizarEstadoBotonCrearReserva - doesReservationExist:', doesReservationExist, 'extractionState:', extractionState);
   
-  // Actualizar el texto del botón según el estado
-  actualizarTextoBotonReserva(didExtractionExist);
+  // Actualizar el texto del botón según el estado (usar doesReservationExist para crear/editar)
+  actualizarTextoBotonReserva(doesReservationExist);
   
   if (esValido) {
     boton.disabled = false;
@@ -2090,27 +2110,58 @@ function resetearAplicacion() {
     reextractButton.style.display = "none";
   }
   
-  // Limpiar contenedores
+  // Limpiar contenedores y asegurar que estén habilitados
   const pasajerosContainer = document.getElementById("pasajerosContainer");
   if (pasajerosContainer) {
     pasajerosContainer.innerHTML = "";
+    // Asegurar que el contenedor esté visible
+    const resultsDiv = document.getElementById("results");
+    if (resultsDiv) {
+      // No forzar display aquí, se mostrará cuando se extraiga
+    }
   }
   
   // Resetear estado de extracción
   extractionState = {
     didExtractionExist: false,
+    doesReservationExist: false,
     reservationCode: null,
-    originData: null
+    originData: null,
+    createdReservationCode: null
   };
   
-  // Limpiar formularios de reserva
-  const camposReserva = ['tipoReserva', 'estadoReserva', 'fechaViaje', 'vendedor', 'cliente'];
-  camposReserva.forEach(campoId => {
-    const campo = document.getElementById(campoId);
-    if (campo) {
-      campo.value = "";
-    }
-  });
+  // Restaurar HTML original de datosReservaSection
+  const datosReservaSection = document.getElementById("datosReservaSection");
+  if (datosReservaSection && datosReservaSectionOriginalHTML) {
+    datosReservaSection.innerHTML = datosReservaSectionOriginalHTML;
+    // Repoblar los selects después de restaurar
+    setTimeout(() => {
+      poblarSelectReserva();
+      // Asegurar que los campos estén habilitados
+      const camposReserva = ['tipoReserva', 'estadoReserva', 'fechaViaje', 'vendedor', 'cliente'];
+      camposReserva.forEach(campoId => {
+        const campo = document.getElementById(campoId);
+        if (campo) {
+          campo.disabled = false;
+          campo.style.backgroundColor = "";
+          campo.style.cursor = "";
+          campo.value = "";
+        }
+      });
+    }, 100);
+  } else {
+    // Si no hay HTML original guardado, limpiar campos manualmente
+    const camposReserva = ['tipoReserva', 'estadoReserva', 'fechaViaje', 'vendedor', 'cliente'];
+    camposReserva.forEach(campoId => {
+      const campo = document.getElementById(campoId);
+      if (campo) {
+        campo.disabled = false;
+        campo.style.backgroundColor = "";
+        campo.style.cursor = "";
+        campo.value = "";
+      }
+    });
+  }
   
   // Ocultar secciones de hotel y servicios
   const hotelSection = document.getElementById("hotelSection");
@@ -2137,8 +2188,9 @@ function resetearAplicacion() {
 
 /**
  * Convierte los formularios a modo lectura (texto plano)
+ * @param {string} reservationCode - Código de la reserva creada/editada
  */
-function convertirAModoLectura() {
+function convertirAModoLectura(reservationCode = null) {
   // Convertir pasajeros a modo lectura
   const container = document.getElementById("pasajerosContainer");
   if (container) {
@@ -2224,6 +2276,9 @@ function convertirAModoLectura() {
   // Convertir datos de reserva a modo lectura
   const datosReservaSection = document.getElementById("datosReservaSection");
   if (datosReservaSection) {
+    // Usar el código de reserva pasado como parámetro o el guardado en el estado
+    const codigoReserva = reservationCode || extractionState.createdReservationCode || null;
+    
     const datosReserva = {
       tipoReserva: document.getElementById("tipoReserva")?.value || "",
       estadoReserva: document.getElementById("estadoReserva")?.value || "",
@@ -2234,6 +2289,12 @@ function convertirAModoLectura() {
     
     datosReservaSection.innerHTML = `
       <h3>Datos de la Reserva</h3>
+      ${codigoReserva ? `
+      <div class="campo-lectura">
+        <label>Código de Reserva:</label>
+        <p><strong>${codigoReserva}</strong></p>
+      </div>
+      ` : ''}
       <div class="campo-lectura">
         <label>Tipo de Reserva:</label>
         <p>${datosReserva.tipoReserva || '-'}</p>
@@ -2751,14 +2812,14 @@ async function ejecutarCrearReserva() {
       return; // NO enviar al RPA
     }
     
-    // Obtener el estado de si la extracción existía (convertir explícitamente a booleano)
-    const didExtractionExist = extractionState.didExtractionExist === true;
+    // Obtener el estado de si la reserva existe (convertir explícitamente a booleano)
+    const doesReservationExist = extractionState.doesReservationExist === true;
     
     // Log para debug
-    console.log('🚀 ejecutarCrearReserva - didExtractionExist:', didExtractionExist, 'extractionState:', extractionState);
+    console.log('🚀 ejecutarCrearReserva - doesReservationExist:', doesReservationExist, 'extractionState:', extractionState);
     
-    // Si es edición, validar cambios antes de continuar
-    if (didExtractionExist && extractionState.originData) {
+    // Si es edición, validar cambios antes de continuar (usar doesReservationExist)
+    if (doesReservationExist && extractionState.originData) {
       // Capturar servicios y hotel para comparación
       const servicios = datosReserva.services || [];
       const hotel = datosReserva.hotel || null;
@@ -2776,8 +2837,8 @@ async function ejecutarCrearReserva() {
       }
     }
     
-    // Mostrar mensaje de procesamiento según si es crear o editar
-    const mensajeProcesamiento = didExtractionExist 
+    // Mostrar mensaje de procesamiento según si es crear o editar (usar doesReservationExist)
+    const mensajeProcesamiento = doesReservationExist 
       ? "Editando reserva en iTraffic... Por favor espere." 
       : "Creando reserva en iTraffic... Por favor espere.";
     mostrarMensaje(mensajeProcesamiento, "info");
@@ -2794,14 +2855,19 @@ async function ejecutarCrearReserva() {
     }
     
     // Llamar al servicio RPA con los datos de pasajeros y reserva, pasando el estado y la data original si es edición
-    const originData = didExtractionExist ? extractionState.originData : null;
-    const resultado = await crearReservaEnITraffic(todosPasajeros, datosReserva, didExtractionExist, originData);
+    const originData = doesReservationExist ? extractionState.originData : null;
+    const resultado = await crearReservaEnITraffic(todosPasajeros, datosReserva, doesReservationExist, originData);
     
     // Obtener reservationCode de la respuesta
     const reservationCode = resultado.data?.reservationCode || resultado.reservationCode || null;
     
-    // Mostrar mensaje de éxito según si es crear o editar, incluyendo el código de reserva si existe
-    let mensajeExito = didExtractionExist 
+    // Guardar el código de reserva en el estado
+    if (reservationCode) {
+      extractionState.createdReservationCode = reservationCode;
+    }
+    
+    // Mostrar mensaje de éxito según si es crear o editar, incluyendo el código de reserva si existe (usar doesReservationExist)
+    let mensajeExito = doesReservationExist 
       ? "¡Reserva editada exitosamente en iTraffic!" 
       : "¡Reserva creada exitosamente en iTraffic!";
     
@@ -2811,12 +2877,12 @@ async function ejecutarCrearReserva() {
     
     mostrarMensaje(mensajeExito, "success");
     
-    // CONVERTIR A MODO LECTURA
-    convertirAModoLectura();
+    // CONVERTIR A MODO LECTURA (pasar el código de reserva)
+    convertirAModoLectura(reservationCode);
     
   } catch (error) {
-    const didExtractionExist = extractionState.didExtractionExist === true;
-    const mensajeError = didExtractionExist 
+    const doesReservationExist = extractionState.doesReservationExist === true;
+    const mensajeError = doesReservationExist 
       ? "Error al editar reserva: " + error.message 
       : "Error al crear reserva: " + error.message;
     mostrarMensaje(mensajeError, "error");
@@ -2879,10 +2945,10 @@ function habilitarFormularios() {
   // Habilitar botón de crear reserva
   const botonCrearReserva = document.getElementById("crearReserva");
   if (botonCrearReserva) {
-    const didExtractionExist = extractionState.didExtractionExist === true;
+    const doesReservationExist = extractionState.doesReservationExist === true;
     botonCrearReserva.disabled = false;
     botonCrearReserva.style.opacity = "1";
-    actualizarTextoBotonReserva(didExtractionExist);
+    actualizarTextoBotonReserva(doesReservationExist);
   }
 }
 
