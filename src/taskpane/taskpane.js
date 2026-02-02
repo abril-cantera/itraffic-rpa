@@ -1456,6 +1456,34 @@ function encontrarServicioCoincidente(servicioBackend) {
 }
 
 /**
+ * Normaliza el estado del servicio a su código (ej: "LI - LIBERADO [LI]" -> "LI")
+ * @param {string} estado - Estado del servicio (puede venir en diferentes formatos)
+ * @returns {string} Código del estado o string vacío
+ */
+function normalizarEstadoServicio(estado) {
+  if (!estado || typeof estado !== 'string') return '';
+  
+  // Si ya es un código de 2 letras, retornarlo
+  if (estado.length === 2 && /^[A-Z]{2}$/.test(estado)) {
+    return estado;
+  }
+  
+  // Intentar extraer el código del formato "XX - DESCRIPCION [XX]"
+  const match = estado.match(/^([A-Z]{2})\s*-/);
+  if (match) {
+    return match[1];
+  }
+  
+  // Intentar extraer de formato "[XX]"
+  const match2 = estado.match(/\[([A-Z]{2})\]/);
+  if (match2) {
+    return match2[1];
+  }
+  
+  return '';
+}
+
+/**
  * Crea un elemento de servicio en el formulario
  * @param {number} index - Índice del servicio
  * @param {Object} servicio - Datos del servicio (opcional)
@@ -1470,6 +1498,9 @@ function crearElementoServicio(index, servicio = {}, esDeExtraccion = false) {
   const servicioCoincidente = servicio.servicio 
     ? encontrarServicioCoincidente(servicio.servicio)
     : null;
+  
+  // Normalizar el estado del servicio
+  const estadoNormalizado = normalizarEstadoServicio(servicio.estado || '');
   
   // Crear el HTML con un datalist para autocompletado
   const datalistId = `serviciosList_${index}`;
@@ -1496,7 +1527,7 @@ function crearElementoServicio(index, servicio = {}, esDeExtraccion = false) {
     </div>
     <div class="form-group">
       <label>Noches: ${requiredSpan}</label>
-      <input type="number" id="servicio_nts_${index}" value="${servicio.nts || ''}" ${requiredAttr}>
+      <input type="number" id="servicio_nts_${index}" value="${servicio.nts !== undefined && servicio.nts !== null ? servicio.nts : ''}" min="0" ${requiredAttr}>
     </div>
     <div class="form-group">
       <label>Base Pax: ${requiredSpan}</label>
@@ -1519,7 +1550,36 @@ function crearElementoServicio(index, servicio = {}, esDeExtraccion = false) {
     </div>
     <div class="form-group">
       <label>Estado: ${requiredSpan}</label>
-      <input type="text" id="servicio_estado_${index}" value="${servicio.estado || ''}" ${requiredAttr}>
+      <select id="servicio_estado_${index}" ${requiredAttr}>
+        <option value="">Seleccione...</option>
+        <option value="LI" ${estadoNormalizado === 'LI' ? 'selected' : ''}>LI - LIBERADO [LI]</option>
+        <option value="OK" ${estadoNormalizado === 'OK' ? 'selected' : ''}>OK - CONFIRMADO [OK]</option>
+        <option value="WL" ${estadoNormalizado === 'WL' ? 'selected' : ''}>WL - LISTA DE ESPERA [WL]</option>
+        <option value="RM" ${estadoNormalizado === 'RM' ? 'selected' : ''}>RM - FAVOR MODIFICAR [RM]</option>
+        <option value="NN" ${estadoNormalizado === 'NN' ? 'selected' : ''}>NN - FAVOR RESERVAR [NN]</option>
+        <option value="RQ" ${estadoNormalizado === 'RQ' ? 'selected' : ''}>RQ - REQUERIDO [RQ]</option>
+        <option value="LK" ${estadoNormalizado === 'LK' ? 'selected' : ''}>LK - RVA OK S/LIQUIDAR [LK]</option>
+        <option value="RE" ${estadoNormalizado === 'RE' ? 'selected' : ''}>RE - RECHAZADO [RE]</option>
+        <option value="MQ" ${estadoNormalizado === 'MQ' ? 'selected' : ''}>MQ - MODIFICACION REQUERIDA [MQ]</option>
+        <option value="CL" ${estadoNormalizado === 'CL' ? 'selected' : ''}>CL - FAVOR CANCELAR [CL]</option>
+        <option value="CA" ${estadoNormalizado === 'CA' ? 'selected' : ''}>CA - CANCELACION SOLICITADA [CA]</option>
+        <option value="CX" ${estadoNormalizado === 'CX' ? 'selected' : ''}>CX - CANCELADO [CX]</option>
+        <option value="EM" ${estadoNormalizado === 'EM' ? 'selected' : ''}>EM - EMITIDO [EM]</option>
+        <option value="EN" ${estadoNormalizado === 'EN' ? 'selected' : ''}>EN - ENTREGADO [EN]</option>
+        <option value="AR" ${estadoNormalizado === 'AR' ? 'selected' : ''}>AR - FAVOR RESERVAR [AR]</option>
+        <option value="HK" ${estadoNormalizado === 'HK' ? 'selected' : ''}>HK - OK CUPO [HK]</option>
+        <option value="PE" ${estadoNormalizado === 'PE' ? 'selected' : ''}>PE - PENALIDAD [PE]</option>
+        <option value="NO" ${estadoNormalizado === 'NO' ? 'selected' : ''}>NO - NEGADO [NO]</option>
+        <option value="NC" ${estadoNormalizado === 'NC' ? 'selected' : ''}>NC - NO CONFORMIDAD [NC]</option>
+        <option value="PF" ${estadoNormalizado === 'PF' ? 'selected' : ''}>PF - PENDIENTE DE FC. COMISION [PF]</option>
+        <option value="AO" ${estadoNormalizado === 'AO' ? 'selected' : ''}>AO - REQUERIR ON LINE [AO]</option>
+        <option value="CO" ${estadoNormalizado === 'CO' ? 'selected' : ''}>CO - CANCELAR ONLINE [CO]</option>
+        <option value="GX" ${estadoNormalizado === 'GX' ? 'selected' : ''}>GX - GASTOS CANCELACION ONLINE [GX]</option>
+        <option value="EO" ${estadoNormalizado === 'EO' ? 'selected' : ''}>EO - EN TRAFICO [EO]</option>
+        <option value="KL" ${estadoNormalizado === 'KL' ? 'selected' : ''}>KL - REQUERIDO CUPO [KL]</option>
+        <option value="MI" ${estadoNormalizado === 'MI' ? 'selected' : ''}>MI - RESERVA MIGRADA [MI]</option>
+        <option value="VO" ${estadoNormalizado === 'VO' ? 'selected' : ''}>VO - VOID [VO]</option>
+      </select>
     </div>
   `;
   
@@ -1716,7 +1776,13 @@ function renumerarServicios() {
       // Buscar el campo dentro del servicioDiv por el patrón del ID
       const campoViejo = servicioDiv.querySelector(`[id^="${campoBase}_"]`);
       if (campoViejo) {
+        // Guardar el valor actual antes de cambiar el ID (especialmente para select)
+        const valorActual = campoViejo.value;
+        
         campoViejo.id = `${campoBase}_${nuevoIndex}`;
+        
+        // Restaurar el valor después de cambiar el ID
+        campoViejo.value = valorActual;
         
         // Actualizar el list del datalist si es el campo servicio
         if (campoBase === 'servicio_servicio') {
@@ -1883,7 +1949,7 @@ function validarCamposObligatorios() {
         if (servicioOut?.required && (!servicioOut.value || servicioOut.value.trim() === "")) {
           serviciosValidos = false;
         }
-        if (nts?.required && (!nts.value || nts.value.trim() === "")) {
+        if (nts?.required && (nts.value === null || nts.value === undefined || nts.value === "")) {
           serviciosValidos = false;
         }
         if (basePax?.required && (!basePax.value || basePax.value.trim() === "")) {
@@ -2657,7 +2723,7 @@ async function ejecutarCrearReserva() {
           if (servicioOut?.required && (!servicio.out || servicio.out.trim() === "")) {
             camposFaltantes.push(`Servicio ${index + 1}: Fecha Salida`);
           }
-          if (nts?.required && (!servicio.nts || servicio.nts === 0)) {
+          if (nts?.required && (nts.value === null || nts.value === undefined || nts.value === "")) {
             camposFaltantes.push(`Servicio ${index + 1}: Noches`);
           }
           if (basePax?.required && (!servicio.basePax || servicio.basePax === 0)) {
