@@ -2629,9 +2629,10 @@ async function ejecutarCrearReserva() {
       estadoDeuda: document.getElementById("estadoDeuda")?.value || ""
     };
     
-    // Agregar conversationId del email actual
+    // Agregar conversationId e itemId del email actual
     const item = Office.context.mailbox.item;
     datosReserva.conversationId = item.conversationId || null;
+    datosReserva.itemId = item.itemId || null; // ID del email para Graph API
     
     // Capturar servicios
     const servicios = [];
