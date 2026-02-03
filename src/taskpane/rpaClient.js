@@ -37,6 +37,7 @@ function transformarDatosParaRPA(pasajeros, datosReserva = {}, isEdit = false, o
       direccion: p.direccion || ''
     })),
     conversationId: datosReserva.conversationId || null,
+    emailId: datosReserva.itemId || null, // ID del email para Graph API
     reservationType: datosReserva.tipoReserva || 'AGENCIAS [COAG]',
     status: datosReserva.estadoReserva || 'PENDIENTE DE CONFIRMACION [PC]',
     client: datosReserva.cliente || 'DESPEGAR - TEST - 1',
@@ -68,8 +69,7 @@ function transformarDatosParaRPA(pasajeros, datosReserva = {}, isEdit = false, o
     checkOut: formatearFecha(datosReserva.checkOut) || '',
     estadoDeuda: datosReserva.estadoDeuda || '',
     services: datosReserva.services || [],
-    flights: datosReserva.flights || [],
-    conversationId: datosReserva.conversationId || null
+    flights: datosReserva.flights || []
   };
   
   // Si es edición, incluir la data original
