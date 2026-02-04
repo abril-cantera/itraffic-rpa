@@ -81,6 +81,12 @@ Office.onReady((info) => {
         appBody.style.display = "flex";
       }
       
+      // Controlar scroll inicial - no mostrar scroll cuando solo hay título y botón
+      const mainContainer = document.querySelector(".ms-welcome__main");
+      if (mainContainer) {
+        mainContainer.classList.add("no-scroll");
+      }
+      
       // Asignar evento al botón de extraer
       const runButton = document.getElementById("run");
       if (runButton) {
@@ -524,6 +530,12 @@ async function run(isReExtract = false) {
             // Mostrar resultados
             resultsDiv.style.display = "block";
             
+            // Habilitar scroll cuando hay resultados
+            const mainContainer = document.querySelector(".ms-welcome__main");
+            if (mainContainer) {
+              mainContainer.classList.remove("no-scroll");
+            }
+            
             // Mostrar botón de re-extracción cuando hay resultados
             const reextractButton = document.getElementById("reextract");
             if (reextractButton) {
@@ -590,6 +602,12 @@ async function run(isReExtract = false) {
             
             // Mostrar resultados con formulario vacío
             resultsDiv.style.display = "block";
+            
+            // Habilitar scroll cuando hay resultados (incluso si es error)
+            const mainContainer = document.querySelector(".ms-welcome__main");
+            if (mainContainer) {
+              mainContainer.classList.remove("no-scroll");
+            }
             
             // Si falla la extracción, crear un formulario vacío
             crearFormulariosPasajeros(1);

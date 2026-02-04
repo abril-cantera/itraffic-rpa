@@ -79,7 +79,7 @@ module.exports = async (env, options) => {
       // RPA_API_URL será reemplazado en el código con la URL del backend de producción
       new webpack.DefinePlugin({
         'RPA_API_URL': JSON.stringify(apiUrl),
-        'process.env.NODE_ENV': JSON.stringify('production')
+        'process.env.NODE_ENV': JSON.stringify('development')
       }),
       new HtmlWebpackPlugin({
         filename: "taskpane.html",

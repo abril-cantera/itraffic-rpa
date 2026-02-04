@@ -10,6 +10,16 @@
   padding: 0;
 }
 
+/* Prevenir scroll horizontal en todos los elementos */
+* {
+  max-width: 100%;
+}
+
+img, video, canvas, svg {
+  max-width: 100%;
+  height: auto;
+}
+
 html,
 body {
   width: 100%;
@@ -24,6 +34,8 @@ body {
   background-size: 400% 400%;
   animation: gradientShift 15s ease infinite;
   min-height: 100vh;
+  overflow-x: hidden;
+  overflow-y: auto;
 }
 
 @keyframes gradientShift {
@@ -38,14 +50,28 @@ body {
   flex-direction: column;
   width: 100%;
   max-width: 100%;
+  min-width: 0;
+  height: 100%;
+  min-height: 0;
   padding: 24px;
-  overflow-y: auto;
   overflow-x: hidden;
   background: rgba(255, 255, 255, 0.95);
   backdrop-filter: blur(10px);
-  border-radius: 16px;
-  box-shadow: 0 8px 32px rgba(0, 0, 0, 0.1);
-  margin: 8px;
+  border-radius: 0;
+  box-shadow: none;
+  margin: 0;
+  box-sizing: border-box;
+  position: relative;
+  flex: 1;
+  /* Evitar scroll innecesario cuando el contenido es pequeño */
+  justify-content: flex-start;
+  /* Solo mostrar scroll cuando el contenido exceda el alto */
+  overflow-y: auto;
+}
+
+/* Cuando no hay resultados, el contenido inicial no debería causar scroll */
+.ms-welcome__main.no-scroll {
+  overflow-y: hidden;
 }
 
 /* Título principal */
@@ -57,16 +83,20 @@ body {
   -webkit-text-fill-color: transparent;
   background-clip: text;
   margin-bottom: 12px;
+  margin-top: 0;
   text-align: left;
   letter-spacing: -0.5px;
   text-shadow: 0 2px 10px rgba(102, 126, 234, 0.2);
+  flex-shrink: 0;
 }
 
 .ms-welcome__main > p {
   color: #64748b;
   margin-bottom: 24px;
+  margin-top: 0;
   font-size: 0.95rem;
   font-weight: 500;
+  flex-shrink: 0;
 }
 
 /* Botón principal - Diseño moderno con gradiente */
@@ -779,4 +809,137 @@ select:invalid {
 input:valid:not(:placeholder-shown),
 select:valid:not(:placeholder-shown) {
   border-color: rgba(16, 185, 129, 0.5);
+}
+
+/* Estilos para el header del add-in de Outlook */
+/* Sobrescribir estilos del header de Office.js/Fluent UI */
+body.ms-Fabric {
+  overflow-x: hidden !important;
+  overflow-y: auto !important;
+}
+
+/* Header del add-in - estilos modernos */
+/* Aplicar a todos los posibles selectores del header de Office.js */
+.ms-CommandBar,
+.ms-CommandBar-primaryCommand,
+.ms-CommandBar-secondaryCommand,
+[role="menubar"],
+[role="toolbar"],
+.office-addin-header,
+[class*="CommandBar"],
+[class*="header"] {
+  background: linear-gradient(135deg, rgba(102, 126, 234, 0.15) 0%, rgba(118, 75, 162, 0.15) 100%) !important;
+  backdrop-filter: blur(10px) !important;
+  border-bottom: 2px solid rgba(102, 126, 234, 0.3) !important;
+  box-shadow: 0 4px 15px rgba(102, 126, 234, 0.15) !important;
+  padding: 12px 16px !important;
+}
+
+/* Título del header del add-in */
+.ms-CommandBar-title,
+.ms-CommandBar-primaryCommand .ms-Button-label,
+[data-automation-id="CommandBarTitle"],
+[class*="title"],
+[class*="Title"] {
+  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%) !important;
+  -webkit-background-clip: text !important;
+  -webkit-text-fill-color: transparent !important;
+  background-clip: text !important;
+  font-weight: 700 !important;
+  letter-spacing: -0.3px !important;
+  font-size: 1.1rem !important;
+}
+
+/* Botones del header */
+.ms-CommandBar .ms-Button,
+.ms-CommandBar button,
+[class*="CommandBar"] button,
+[class*="CommandBar"] .ms-Button {
+  color: #667eea !important;
+  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1) !important;
+  border-radius: 8px !important;
+}
+
+.ms-CommandBar .ms-Button:hover,
+.ms-CommandBar button:hover,
+[class*="CommandBar"] button:hover,
+[class*="CommandBar"] .ms-Button:hover {
+  background: rgba(102, 126, 234, 0.15) !important;
+  border-radius: 8px !important;
+  transform: translateY(-1px) !important;
+  box-shadow: 0 2px 8px rgba(102, 126, 234, 0.2) !important;
+}
+
+/* Iconos del header */
+.ms-CommandBar .ms-Icon,
+.ms-CommandBar [class*="icon"],
+.ms-CommandBar [class*="Icon"],
+[class*="CommandBar"] [class*="icon"],
+[class*="CommandBar"] [class*="Icon"] {
+  color: #667eea !important;
+}
+
+/* Texto del header */
+.ms-CommandBar span,
+.ms-CommandBar p,
+.ms-CommandBar div:not([class*="Button"]):not([class*="Icon"]) {
+  color: #475569 !important;
+}
+
+/* Estilos específicos para el título "Email Classifier (LOCAL)" */
+/* Aplicar a cualquier elemento que contenga el título del add-in */
+[aria-label*="Email Classifier"],
+[title*="Email Classifier"],
+[data-name*="Email Classifier"] {
+  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%) !important;
+  -webkit-background-clip: text !important;
+  -webkit-text-fill-color: transparent !important;
+  background-clip: text !important;
+  font-weight: 700 !important;
+}
+
+/* Asegurar que el contenedor del add-in ocupe todo el espacio */
+#app-body,
+#app-body > * {
+  width: 100% !important;
+  max-width: 100% !important;
+  min-width: 0 !important;
+  overflow-x: hidden !important;
+}
+
+/* Prevenir overflow horizontal en elementos específicos */
+input, select, textarea, button {
+  max-width: 100% !important;
+  box-sizing: border-box !important;
+}
+
+/* Ajustar el body para que el contenedor ocupe todo el alto */
+body.ms-Fabric {
+  display: flex;
+  flex-direction: column;
+  height: 100vh;
+  overflow: hidden;
+  position: relative;
+}
+
+body.ms-Fabric #app-body {
+  flex: 1;
+  overflow: hidden;
+  min-height: 0;
+  display: flex;
+  flex-direction: column;
+}
+
+/* Asegurar que el main ocupe todo el espacio disponible sin scroll innecesario */
+body.ms-Fabric #app-body .ms-welcome__main {
+  flex: 1;
+  min-height: 0;
+  overflow-x: hidden;
+  /* Solo mostrar scroll vertical cuando el contenido exceda el alto disponible */
+  overflow-y: auto;
+}
+
+/* Clase para controlar el scroll cuando no hay resultados */
+.ms-welcome__main.no-scroll {
+  overflow-y: hidden;
 }

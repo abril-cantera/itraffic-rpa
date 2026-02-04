@@ -13,8 +13,8 @@
   <Version>1.0.2.0</Version>
   <ProviderName>Aymara (LOCAL)</ProviderName>
   <DefaultLocale>es-ES</DefaultLocale>
-  <DisplayName DefaultValue="Email Classifier (LOCAL)" />
-  <Description DefaultValue="Clasificación automática de correos con IA - DESARROLLO LOCAL" />
+  <DisplayName DefaultValue="Itraffic Extractor" />
+  <Description DefaultValue="Extrae datos de correos y crea reservas automáticamente en iTraffic" />
   <IconUrl DefaultValue="https://gentle-ground-0e6ae2a1e.1.azurestaticapps.net/assets/icon-32.png" />
   <HighResolutionIconUrl DefaultValue="https://gentle-ground-0e6ae2a1e.1.azurestaticapps.net/assets/icon-80.png" />
   <SupportUrl DefaultValue="https://localhost:3000" />
