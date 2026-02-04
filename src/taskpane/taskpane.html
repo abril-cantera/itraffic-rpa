@@ -24,22 +24,22 @@
 <body class="ms-font-m ms-welcome ms-Fabric">
     <main id="app-body" class="ms-welcome__main">
         <h2>Extractor de Datos de Pasajero</h2>
-        <p style="margin-bottom:20px; color:#666;">Haz clic en el botón para extraer la información del correo:</p>
+        <p style="margin-bottom:24px; color:#64748b; font-weight:500;">Haz clic en el botón para extraer la información del correo:</p>
 
         <button id="run" class="ms-Button">
             <span class="ms-Button-label">📧 Extraer Información</span>
         </button>
 
         <!-- Loader -->
-        <div id="loader" style="display:none; text-align:center; padding:40px 20px;">
+        <div id="loader" style="display:none; text-align:center; padding:50px 20px;">
             <div class="spinner"></div>
-            <p style="margin-top:20px; color:#666;">Extrayendo información del correo...</p>
-            <p style="font-size:0.9em; color:#999;">Por favor espera, esto puede tomar unos segundos</p>
+            <p style="margin-top:24px; color:#475569; font-weight:600; font-size:1rem;">Extrayendo información del correo...</p>
+            <p style="font-size:0.9em; color:#94a3b8; margin-top:8px;">Por favor espera, esto puede tomar unos segundos</p>
         </div>
 
         <div id="results" style="display:none;">
-            <div style="text-align:right; margin-bottom:10px;">
-                <button id="reextract" class="ms-Button" style="font-size:0.85em; padding:6px 12px;">
+            <div style="text-align:right; margin-bottom:16px;">
+                <button id="reextract" class="ms-Button btn-secondary" style="font-size:0.9em; padding:10px 18px; width:auto; display:inline-block;">
                     <span class="ms-Button-label">🔄 Re-extraer</span>
                 </button>
             </div>
@@ -58,7 +58,7 @@
                 <h3>Datos de la Reserva</h3>
                 
                 <div class="form-group">
-                    <label>Tipo de Reserva: <span style="color: red;">*</span></label>
+                    <label>Tipo de Reserva: <span style="color: #ef4444;">*</span></label>
                     <select id="tipoReserva" required>
                         <option value="">Seleccione...</option>
                         <option value="AGENCIAS [COAG]">Agencias [COAG]</option>
@@ -68,7 +68,7 @@
                 </div>
 
                 <div class="form-group">
-                    <label>Estado: <span style="color: red;">*</span></label>
+                    <label>Estado: <span style="color: #ef4444;">*</span></label>
                     <select id="estadoReserva" required>
                         <option value="">Seleccione...</option>
                         <option value="PENDIENTE DE CONFIRMACION [PC]">Pendiente de Confirmación [PC]</option>
@@ -78,12 +78,12 @@
                 </div>
 
                 <div class="form-group">
-                    <label>Fecha de Viaje: <span style="color: red;">*</span></label>
+                    <label>Fecha de Viaje: <span style="color: #ef4444;">*</span></label>
                     <input type="date" id="fechaViaje" required>
                 </div>
 
                 <div class="form-group">
-                    <label>Vendedor: <span style="color: red;">*</span></label>
+                    <label>Vendedor: <span style="color: #ef4444;">*</span></label>
                     <select id="vendedor" required>
                         <option value="">Seleccione...</option>
                         <option value="TEST TEST">TEST TEST</option>
@@ -93,7 +93,7 @@
                 </div>
 
                 <div class="form-group">
-                    <label>Cliente: <span style="color: red;">*</span></label>
+                    <label>Cliente: <span style="color: #ef4444;">*</span></label>
                     <select id="cliente" required>
                         <option value="">Seleccione...</option>
                         <option value="DESPEGAR - TEST - 1">DESPEGAR - TEST - 1</option>
@@ -122,15 +122,15 @@
                     <h3>Hotel</h3>
                     <div id="hotelContainer">
                         <div class="form-group">
-                            <label>Nombre del Hotel: <span style="color: red;">*</span></label>
+                            <label>Nombre del Hotel: <span style="color: #ef4444;">*</span></label>
                             <input type="text" id="hotel_nombre" placeholder="Nombre del hotel">
                         </div>
                         <div class="form-group">
-                            <label>Tipo de Habitación: <span style="color: red;">*</span></label>
+                            <label>Tipo de Habitación: <span style="color: #ef4444;">*</span></label>
                             <input type="text" id="hotel_tipo_habitacion" placeholder="Ej: DWL, SGL, DBL">
                         </div>
                         <div class="form-group">
-                            <label>Ciudad: <span style="color: red;">*</span></label>
+                            <label>Ciudad: <span style="color: #ef4444;">*</span></label>
                             <input type="text" id="hotel_ciudad" placeholder="Ej: MDZ, BUE">
                         </div>
                         <div class="form-group">
@@ -138,11 +138,11 @@
                             <input type="text" id="hotel_categoria" placeholder="Categoría del hotel">
                         </div>
                         <div class="form-group">
-                            <label>Fecha Entrada Hotel: <span style="color: red;">*</span></label>
+                            <label>Fecha Entrada Hotel: <span style="color: #ef4444;">*</span></label>
                             <input type="date" id="hotel_in">
                         </div>
                         <div class="form-group">
-                            <label>Fecha Salida Hotel: <span style="color: red;">*</span></label>
+                            <label>Fecha Salida Hotel: <span style="color: #ef4444;">*</span></label>
                             <input type="date" id="hotel_out">
                         </div>
                     </div>

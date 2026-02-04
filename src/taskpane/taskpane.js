@@ -503,8 +503,20 @@ async function run(isReExtract = false) {
           const cuerpoCorreo = result.value;
           
           try {
-            // Llamar al servicio de extracción con IA
-            const extractedData = await extraerDatosConIA(cuerpoCorreo, isReExtract);
+            // Extraer imágenes del email
+            let images = [];
+            try {
+              images = await extraerImagenesDelEmail();
+              if (images.length > 0) {
+                console.log(`📸 ${images.length} imagen(es) extraída(s) del email`);
+              }
+            } catch (imageError) {
+              console.warn('⚠️ Error al extraer imágenes, continuando sin ellas:', imageError);
+              // Continuar sin imágenes para no romper el flujo
+            }
+            
+            // Llamar al servicio de extracción con IA (incluyendo imágenes si las hay)
+            const extractedData = await extraerDatosConIA(cuerpoCorreo, isReExtract, images);
             
             // Ocultar loader
             loader.style.display = "none";
@@ -608,9 +620,278 @@ async function run(isReExtract = false) {
 }
 
 /**
- * Llama al servicio de extracción con IA
+ * Extrae imágenes del email actual (attachments e inline)
+ * @returns {Promise<File[]>} Array de archivos de imagen
  */
-async function extraerDatosConIA(emailContent, isReExtract = false) {
+async function extraerImagenesDelEmail() {
+  const images = [];
+  const item = Office.context.mailbox.item;
+  const MAX_IMAGE_SIZE = 10 * 1024 * 1024; // 10MB por imagen
+  const MAX_TOTAL_SIZE = 50 * 1024 * 1024; // 50MB total
+  let totalSize = 0;
+  
+  try {
+    // Validar que el item existe
+    if (!item) {
+      console.warn('⚠️ No se pudo acceder al item del email');
+      return [];
+    }
+    // 1. Extraer attachments de tipo imagen
+    if (item.attachments && item.attachments.length > 0) {
+      for (let i = 0; i < item.attachments.length; i++) {
+        const attachment = item.attachments[i];
+        
+        // Verificar si es una imagen por extensión
+        const imageExtensions = ['.jpg', '.jpeg', '.png', '.gif', '.bmp', '.webp', '.svg'];
+        const isImage = imageExtensions.some(ext => 
+          attachment.name.toLowerCase().endsWith(ext)
+        );
+        
+        if (isImage) {
+          try {
+            // Obtener el attachment como base64
+            const attachmentData = await new Promise((resolve, reject) => {
+              item.getAttachmentContentAsync(attachment.id, (result) => {
+                if (result.status === Office.AsyncResultStatus.Succeeded) {
+                  resolve(result.value);
+                } else {
+                  reject(new Error(result.error.message));
+                }
+              });
+            });
+            
+            // Convertir base64 a Blob
+            const contentType = attachmentData.contentType || 'image/jpeg';
+            const base64Data = attachmentData.content;
+            const binaryString = atob(base64Data);
+            const bytes = new Uint8Array(binaryString.length);
+            for (let j = 0; j < binaryString.length; j++) {
+              bytes[j] = binaryString.charCodeAt(j);
+            }
+            const blob = new Blob([bytes], { type: contentType });
+            
+            // Validar tamaño individual
+            if (blob.size > MAX_IMAGE_SIZE) {
+              console.warn(`⚠️ Imagen ${attachment.name} es muy grande (${(blob.size / 1024 / 1024).toFixed(2)}MB), se comprimirá`);
+              const compressedBlob = await comprimirImagen(blob, attachment.name);
+              if (compressedBlob && compressedBlob.size > 0) {
+                // Validar tamaño total
+                if (totalSize + compressedBlob.size > MAX_TOTAL_SIZE) {
+                  console.warn(`⚠️ Límite total de tamaño alcanzado. Se omitirá ${attachment.name}`);
+                  continue;
+                }
+                const file = new File([compressedBlob], attachment.name, { type: compressedBlob.type });
+                images.push(file);
+                totalSize += compressedBlob.size;
+              } else {
+                console.warn(`⚠️ No se pudo comprimir ${attachment.name}, se omitirá`);
+              }
+            } else {
+              // Validar tamaño total
+              if (totalSize + blob.size > MAX_TOTAL_SIZE) {
+                console.warn(`⚠️ Límite total de tamaño alcanzado. Se omitirá ${attachment.name}`);
+                continue;
+              }
+              const file = new File([blob], attachment.name, { type: contentType });
+              images.push(file);
+              totalSize += blob.size;
+            }
+          } catch (error) {
+            console.warn(`⚠️ Error al extraer attachment ${attachment.name}:`, error);
+            // Continuar con otros attachments sin romper el flujo
+          }
+        }
+      }
+    }
+    
+    // 2. Extraer imágenes inline del HTML del body
+    try {
+      const htmlBody = await new Promise((resolve, reject) => {
+        item.body.getAsync(Office.CoercionType.Html, (result) => {
+          if (result.status === Office.AsyncResultStatus.Succeeded) {
+            resolve(result.value);
+          } else {
+            reject(new Error(result.error.message));
+          }
+        });
+      });
+      
+      // Parsear HTML y buscar imágenes
+      const parser = new DOMParser();
+      const doc = parser.parseFromString(htmlBody, 'text/html');
+      const imgTags = doc.querySelectorAll('img');
+      
+      for (const img of imgTags) {
+        const src = img.getAttribute('src');
+        if (!src) continue;
+        
+        // Si es base64 (data:image/...)
+        if (src.startsWith('data:image/')) {
+          try {
+            const [header, base64Data] = src.split(',');
+            const contentTypeMatch = header.match(/data:image\/([^;]+)/);
+            const contentType = contentTypeMatch ? `image/${contentTypeMatch[1]}` : 'image/png';
+            
+            const binaryString = atob(base64Data);
+            const bytes = new Uint8Array(binaryString.length);
+            for (let j = 0; j < binaryString.length; j++) {
+              bytes[j] = binaryString.charCodeAt(j);
+            }
+            const blob = new Blob([bytes], { type: contentType });
+            
+            // Validar tamaño individual
+            if (blob.size > MAX_IMAGE_SIZE) {
+              console.warn(`⚠️ Imagen inline es muy grande (${(blob.size / 1024 / 1024).toFixed(2)}MB), se comprimirá`);
+              const compressedBlob = await comprimirImagen(blob, `inline-image-${images.length}.png`);
+              if (compressedBlob && compressedBlob.size > 0) {
+                // Validar tamaño total
+                if (totalSize + compressedBlob.size > MAX_TOTAL_SIZE) {
+                  console.warn(`⚠️ Límite total de tamaño alcanzado. Se omitirá imagen inline`);
+                  continue;
+                }
+                const file = new File([compressedBlob], `inline-image-${images.length}.png`, { type: compressedBlob.type });
+                images.push(file);
+                totalSize += compressedBlob.size;
+              } else {
+                console.warn(`⚠️ No se pudo comprimir imagen inline, se omitirá`);
+              }
+            } else {
+              // Validar tamaño total
+              if (totalSize + blob.size > MAX_TOTAL_SIZE) {
+                console.warn(`⚠️ Límite total de tamaño alcanzado. Se omitirá imagen inline`);
+                continue;
+              }
+              const fileName = `inline-image-${images.length}.${contentType.split('/')[1] || 'png'}`;
+              const file = new File([blob], fileName, { type: contentType });
+              images.push(file);
+              totalSize += blob.size;
+            }
+          } catch (error) {
+            console.warn(`⚠️ Error al procesar imagen inline:`, error);
+            // Continuar sin romper el flujo
+          }
+        }
+        // Si es una URL externa, no la podemos extraer directamente
+        // (requeriría permisos adicionales o Graph API)
+      }
+    } catch (error) {
+      console.warn('⚠️ Error al extraer imágenes inline del HTML:', error);
+      // Continuar sin romper el flujo
+    }
+    
+    console.log(`📸 Imágenes extraídas: ${images.length} (${(totalSize / 1024 / 1024).toFixed(2)}MB total)`);
+    
+    if (images.length > 0 && totalSize > MAX_TOTAL_SIZE * 0.8) {
+      console.warn(`⚠️ Advertencia: Se está usando ${((totalSize / MAX_TOTAL_SIZE) * 100).toFixed(1)}% del límite total de tamaño`);
+    }
+    
+    return images;
+    
+  } catch (error) {
+    console.error('❌ Error al extraer imágenes:', error);
+    // Retornar array vacío para no romper el flujo principal
+    // No mostrar error al usuario ya que las imágenes son opcionales
+    return [];
+  }
+}
+
+/**
+ * Comprime una imagen usando Canvas API
+ * @param {Blob} imageBlob - Blob de la imagen
+ * @param {string} fileName - Nombre del archivo
+ * @returns {Promise<Blob|null>} Blob comprimido o null si falla
+ */
+async function comprimirImagen(imageBlob, fileName) {
+  return new Promise((resolve) => {
+    try {
+      const img = new Image();
+      const url = URL.createObjectURL(imageBlob);
+      
+      // Timeout para evitar que se quede colgado
+      const timeout = setTimeout(() => {
+        URL.revokeObjectURL(url);
+        console.warn('⚠️ Timeout al comprimir imagen');
+        resolve(null);
+      }, 30000); // 30 segundos
+      
+      img.onload = () => {
+        clearTimeout(timeout);
+        URL.revokeObjectURL(url);
+        
+        try {
+          // Calcular nuevo tamaño (máximo 1920px de ancho o alto)
+          const maxDimension = 1920;
+          let width = img.width;
+          let height = img.height;
+          
+          if (width > maxDimension || height > maxDimension) {
+            if (width > height) {
+              height = (height / width) * maxDimension;
+              width = maxDimension;
+            } else {
+              width = (width / height) * maxDimension;
+              height = maxDimension;
+            }
+          }
+          
+          // Validar dimensiones mínimas
+          if (width < 1 || height < 1) {
+            console.warn('⚠️ Dimensiones inválidas para compresión');
+            resolve(null);
+            return;
+          }
+          
+          // Crear canvas y comprimir
+          const canvas = document.createElement('canvas');
+          canvas.width = width;
+          canvas.height = height;
+          const ctx = canvas.getContext('2d');
+          
+          if (!ctx) {
+            console.warn('⚠️ No se pudo obtener contexto del canvas');
+            resolve(null);
+            return;
+          }
+          
+          ctx.drawImage(img, 0, 0, width, height);
+          
+          // Convertir a blob con calidad 0.8
+          canvas.toBlob((blob) => {
+            if (blob && blob.size > 0) {
+              resolve(blob);
+            } else {
+              console.warn('⚠️ Error al generar blob comprimido');
+              resolve(null);
+            }
+          }, 'image/jpeg', 0.8);
+        } catch (error) {
+          console.warn('⚠️ Error durante la compresión:', error);
+          resolve(null);
+        }
+      };
+      
+      img.onerror = () => {
+        clearTimeout(timeout);
+        URL.revokeObjectURL(url);
+        console.warn('⚠️ Error al cargar imagen para compresión');
+        resolve(null);
+      };
+      
+      img.src = url;
+    } catch (error) {
+      console.warn('⚠️ Error al iniciar compresión:', error);
+      resolve(null);
+    }
+  });
+}
+
+/**
+ * Llama al servicio de extracción con IA
+ * @param {string} emailContent - Contenido del email
+ * @param {boolean} isReExtract - Si es re-extracción
+ * @param {File[]} images - Array de imágenes extraídas (opcional)
+ */
+async function extraerDatosConIA(emailContent, isReExtract = false, images = []) {
   // Usar la variable global RPA_API_URL inyectada por webpack
   const extractUrl = typeof RPA_API_URL !== 'undefined'
     ? RPA_API_URL + '/api/extract'
@@ -619,7 +900,67 @@ async function extraerDatosConIA(emailContent, isReExtract = false) {
   
   // Log para verificar que isReExtract se está enviando
   console.log('📤 Enviando extracción - isReExtract:', isReExtract, 'tipo:', typeof isReExtract);
+  console.log('📸 Imágenes a enviar:', images.length);
   
+  // Si hay imágenes, usar FormData; si no, usar JSON
+  if (images && images.length > 0) {
+    try {
+      const formData = new FormData();
+      formData.append('emailContent', emailContent);
+      formData.append('userId', mailbox.userProfile.emailAddress || 'outlook-user');
+      formData.append('conversationId', mailbox.item.conversationId || 'conversation-id');
+      formData.append('isReExtract', isReExtract.toString());
+      
+      // Validar y agregar cada imagen
+      let validImagesCount = 0;
+      images.forEach((image, index) => {
+        // Validar que la imagen existe y tiene tamaño válido
+        if (image && image.size > 0 && image.size <= 50 * 1024 * 1024) {
+          formData.append('images', image, image.name);
+          validImagesCount++;
+        } else {
+          console.warn(`⚠️ Imagen ${image?.name || index} inválida o muy grande, se omitirá`);
+        }
+      });
+      
+      if (validImagesCount === 0) {
+        console.warn('⚠️ No hay imágenes válidas, se enviará sin imágenes');
+        // Continuar con JSON si no hay imágenes válidas
+        images = [];
+      } else {
+        console.log(`📤 Enviando ${validImagesCount} imagen(es) con FormData`);
+        
+        const response = await fetch(extractUrl, {
+          method: 'POST',
+          body: formData
+          // No establecer Content-Type, el navegador lo hará automáticamente con el boundary
+        });
+
+        if (!response.ok) {
+          const errorData = await response.json().catch(() => ({ error: 'Error al extraer datos' }));
+          throw new Error(errorData.error || 'Error al extraer datos');
+        }
+
+        const result = await response.json();
+        
+        // Incluir didExtractionExist y doesReservationExist del nivel superior en el objeto data
+        const dataWithExtractionState = {
+          ...result.data,
+          didExtractionExist: result.didExtractionExist || false,
+          doesReservationExist: result.doesReservationExist || false
+        };
+        
+        return dataWithExtractionState;
+      }
+    } catch (error) {
+      console.error('❌ Error al enviar FormData con imágenes:', error);
+      // Si falla el envío con FormData, intentar sin imágenes
+      console.warn('⚠️ Reintentando sin imágenes...');
+      images = [];
+    }
+  }
+  
+  // Sin imágenes o fallback, usar JSON como antes
   const response = await fetch(extractUrl, {
     method: 'POST',
     headers: {
