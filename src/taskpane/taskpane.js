@@ -7,6 +7,7 @@
 
 import { crearReservaEnITraffic } from './rpaClient.js';
 import { servicesList } from './servicesList.js';
+import { encontrarClienteCoincidente } from './clienteMatcher.js';
 
 // Estado global para datos maestros
 const masterData = {
@@ -1503,21 +1504,20 @@ function llenarDatosReserva(datosExtraidos) {
     if (clienteSelect) {
       const valorCliente = datosExtraidos.client;
       if (valorCliente && valorCliente !== 'null' && valorCliente !== null) {
+        // Intentar asignación directa primero
         clienteSelect.value = valorCliente;
-        console.log(`✅ Cliente: "${valorCliente}" -> "${clienteSelect.value}"`);
         
-        // Si no se seleccionó, intentar buscar una coincidencia parcial
+        // Si no se seleccionó, usar la función de coincidencia inteligente
         if (!clienteSelect.value || clienteSelect.value === "") {
-          const opciones = Array.from(clienteSelect.options);
-          const coincidencia = opciones.find(opt => 
-            opt.value && valorCliente &&
-            (opt.value.toUpperCase().includes(valorCliente.toUpperCase()) ||
-            valorCliente.toUpperCase().includes(opt.value.toUpperCase()))
-          );
-          if (coincidencia) {
-            clienteSelect.value = coincidencia.value;
-            console.log(`✅ Cliente (coincidencia): "${valorCliente}" -> "${clienteSelect.value}"`);
+          const clienteCoincidente = encontrarClienteCoincidente(valorCliente, masterData.clients);
+          if (clienteCoincidente) {
+            clienteSelect.value = clienteCoincidente;
+            console.log(`✅ Cliente (coincidencia inteligente): "${valorCliente}" -> "${clienteSelect.value}"`);
+          } else {
+            console.warn(`⚠️ No se encontró coincidencia para Cliente: "${valorCliente}"`);
           }
+        } else {
+          console.log(`✅ Cliente asignado correctamente: "${clienteSelect.value}"`);
         }
       } else {
         console.log(`⚠️ Cliente es null o inválido: "${valorCliente}"`);
