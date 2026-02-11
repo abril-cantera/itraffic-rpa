@@ -1270,7 +1270,7 @@ function agregarNuevoPasajero() {
   }
 }
 
-function guardarDatos() {
+async function guardarDatos() {
   try {
     const container = document.getElementById("pasajerosContainer");
     if (!container) {
@@ -1284,16 +1284,15 @@ function guardarDatos() {
       return;
     }
     
+    // Recopilar datos de todos los pasajeros
     const todosPasajeros = [];
-    
     pasajeros.forEach((pasajeroDiv, index) => {
       const numero = pasajeroDiv.dataset.numeroPasajero;
-      
-      // Obtener valores directamente del DOM del pasajero
       const content = pasajeroDiv.querySelector(".pasajero-content");
+      
       if (content) {
         const datos = {
-          numeroPasajero: index + 1, // Número secuencial para el guardado
+          numeroPasajero: index + 1,
           tipoPasajero: content.querySelector(`#tipoPasajero_${numero}`)?.value || "",
           nombre: content.querySelector(`#nombre_${numero}`)?.value || "",
           apellido: content.querySelector(`#apellido_${numero}`)?.value || "",
@@ -1311,16 +1310,136 @@ function guardarDatos() {
       }
     });
     
-    // Aquí puedes enviar los datos a tu backend/base de datos
-    // Por ejemplo: enviar a Azure Function, API, etc.
-    // fetch('tu-api-url', {
-    //   method: 'POST',
-    //   headers: { 'Content-Type': 'application/json' },
-    //   body: JSON.stringify(todosPasajeros)
-    // });
+    // Capturar datos de la reserva
+    const datosReserva = {
+      tipoReserva: document.getElementById("tipoReserva")?.value || "",
+      estadoReserva: document.getElementById("estadoReserva")?.value || "",
+      fechaViaje: document.getElementById("fechaViaje")?.value || "",
+      vendedor: document.getElementById("vendedor")?.value || "",
+      cliente: document.getElementById("cliente")?.value || "",
+      codigo: document.getElementById("codigo")?.value || "",
+      reservationDate: document.getElementById("fechaReserva")?.value || "",
+      tourEndDate: document.getElementById("fechaFinTour")?.value || "",
+      dueDate: document.getElementById("fechaVencimiento")?.value || "",
+      contact: document.getElementById("contacto")?.value || "",
+      contactEmail: document.getElementById("contactEmail")?.value || "",
+      contactPhone: document.getElementById("contactPhone")?.value || "",
+      currency: document.getElementById("moneda")?.value || "",
+      exchangeRate: parseFloat(document.getElementById("tipoCambio")?.value) || 0,
+      commission: parseFloat(document.getElementById("comision")?.value) || 0,
+      netAmount: parseFloat(document.getElementById("montoNeto")?.value) || 0,
+      grossAmount: parseFloat(document.getElementById("montoBruto")?.value) || 0,
+      tripName: document.getElementById("nombreViaje")?.value || "",
+      productCode: document.getElementById("codigoProducto")?.value || "",
+      adults: parseInt(document.getElementById("adultos")?.value) || 0,
+      children: parseInt(document.getElementById("ninos")?.value) || 0,
+      infants: parseInt(document.getElementById("infantes")?.value) || 0,
+      provider: document.getElementById("proveedor")?.value || "",
+      reservationCode: document.getElementById("codigoReserva")?.value || extractionState.reservationCode || "",
+      hotel: (() => {
+        const nombreHotel = document.getElementById("hotel_nombre")?.value || "";
+        const tipoHabitacion = document.getElementById("hotel_tipo_habitacion")?.value || "";
+        const ciudad = document.getElementById("hotel_ciudad")?.value || "";
+        const categoria = document.getElementById("hotel_categoria")?.value || null;
+        const hotelIn = document.getElementById("hotel_in")?.value || "";
+        const hotelOut = document.getElementById("hotel_out")?.value || "";
+        
+        if (!nombreHotel && !tipoHabitacion && !ciudad && !hotelIn && !hotelOut) {
+          return null;
+        }
+        
+        return {
+          nombre_hotel: nombreHotel,
+          tipo_habitacion: tipoHabitacion,
+          Ciudad: ciudad,
+          Categoria: categoria || null,
+          in: hotelIn,
+          out: hotelOut
+        };
+      })(),
+      checkIn: document.getElementById("checkIn")?.value || "",
+      checkOut: document.getElementById("checkOut")?.value || "",
+      estadoDeuda: document.getElementById("estadoDeuda")?.value || ""
+    };
+    
+    // Agregar conversationId e itemId del email actual
+    const item = Office.context.mailbox.item;
+    datosReserva.conversationId = item.conversationId || null;
+    datosReserva.itemId = item.itemId || null;
+    
+    // Capturar servicios
+    const servicios = [];
+    const serviciosContainer = document.getElementById("serviciosContainer");
+    if (serviciosContainer) {
+      const servicioItems = serviciosContainer.querySelectorAll(".servicio-item");
+      servicioItems.forEach((item, index) => {
+        servicios.push({
+          destino: document.getElementById(`servicio_destino_${index}`)?.value || "",
+          in: document.getElementById(`servicio_in_${index}`)?.value || "",
+          out: document.getElementById(`servicio_out_${index}`)?.value || "",
+          nts: parseInt(document.getElementById(`servicio_nts_${index}`)?.value) || 0,
+          basePax: parseInt(document.getElementById(`servicio_basePax_${index}`)?.value) || 0,
+          servicio: document.getElementById(`servicio_servicio_${index}`)?.value || "",
+          descripcion: document.getElementById(`servicio_descripcion_${index}`)?.value || "",
+          estado: document.getElementById(`servicio_estado_${index}`)?.value || ""
+        });
+      });
+    }
+    datosReserva.services = servicios;
+    
+    // Capturar vuelos
+    const vuelos = [];
+    const vuelosContainer = document.getElementById("vuelosContainer");
+    if (vuelosContainer) {
+      const vueloItems = vuelosContainer.querySelectorAll(".vuelo-item");
+      vueloItems.forEach((item, index) => {
+        vuelos.push({
+          airline: document.getElementById(`vuelo_airline_${index}`)?.value || "",
+          flightNumber: document.getElementById(`vuelo_flightNumber_${index}`)?.value || "",
+          origin: document.getElementById(`vuelo_origin_${index}`)?.value || "",
+          destination: document.getElementById(`vuelo_destination_${index}`)?.value || "",
+          departureDate: document.getElementById(`vuelo_departureDate_${index}`)?.value || "",
+          departureTime: document.getElementById(`vuelo_departureTime_${index}`)?.value || "",
+          arrivalDate: document.getElementById(`vuelo_arrivalDate_${index}`)?.value || "",
+          arrivalTime: document.getElementById(`vuelo_arrivalTime_${index}`)?.value || ""
+        });
+      });
+    }
+    datosReserva.flights = vuelos;
+    
+    // Preparar datos para enviar
+    const datosParaEnviar = {
+      passengers: todosPasajeros,
+      ...datosReserva
+    };
+    
+    // Mostrar mensaje de procesamiento
+    mostrarMensaje("Guardando datos... Por favor espere.", "info");
+    
+    // Usar la variable global RPA_API_URL inyectada por webpack
+    const updateUrl = typeof RPA_API_URL !== 'undefined'
+      ? RPA_API_URL + '/api/extract/update'
+      : 'http://localhost:3001/api/extract/update';
+    
+    // Enviar datos al backend
+    const response = await fetch(updateUrl, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify(datosParaEnviar)
+    });
+    
+    if (!response.ok) {
+      const errorData = await response.json().catch(() => ({ error: 'Error al guardar datos' }));
+      throw new Error(errorData.error || 'Error al guardar datos');
+    }
+    
+    const result = await response.json();
     
     mostrarMensaje(`Datos de ${todosPasajeros.length} pasajero(s) guardados correctamente`, "success");
   } catch (error) {
+    mostrarMensaje("Error al guardar datos: " + error.message, "error");
     throw error;
   }
 }
@@ -2129,18 +2248,7 @@ function eliminarServicio(servicioDiv) {
     const serviciosContainer = document.getElementById("serviciosContainer");
     if (!serviciosContainer) return;
     
-    const servicioItems = serviciosContainer.querySelectorAll(".servicio-item");
-    
-    // No permitir eliminar si solo hay un servicio y es de extracción (required)
-    if (servicioItems.length <= 1) {
-      const primerCampo = servicioDiv.querySelector("[required]");
-      if (primerCampo) {
-        mostrarMensaje("Debe haber al menos un servicio cuando vienen de la extracción", "info");
-        return;
-      }
-    }
-    
-    // Eliminar el servicio
+    // Eliminar el servicio directamente sin restricciones
     servicioDiv.remove();
     
     // Renumerar servicios
