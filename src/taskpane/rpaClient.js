@@ -29,7 +29,38 @@ function transformarDatosParaRPA(pasajeros, datosReserva = {}, isEdit = false, o
       paxType: p.tipoPasajero === 'adulto' ? 'ADU' : p.tipoPasajero === 'menor' ? 'CHD' : 'INF',
       birthDate: formatearFecha(p.fechaNacimiento), // Convertir a MM/DD/AAAA
       nationality: p.nacionalidad?.toUpperCase() || 'ARGENTINA',
-      sex: p.sexo === 'masculino' ? 'M' : p.sexo === 'femenino' ? 'F' : 'O',
+      sex: (() => {
+        // Normalizar el valor de sexo: puede venir como "M", "F", "[M]", "[F]", "masculino", "femenino", etc.
+        let sexoValue = p.sexo || '';
+        
+        // Si está vacío, retornar vacío
+        if (!sexoValue) return '';
+        
+        // Convertir a mayúsculas para normalizar
+        sexoValue = sexoValue.toUpperCase().trim();
+        
+        // Si ya tiene corchetes, extraer el código
+        if (sexoValue.startsWith('[') && sexoValue.endsWith(']')) {
+          sexoValue = sexoValue.slice(1, -1);
+        }
+        
+        // Mapear valores comunes a códigos
+        if (sexoValue === 'M' || sexoValue === 'MASCULINO' || sexoValue === 'MALE') {
+          return '[M]';
+        } else if (sexoValue === 'F' || sexoValue === 'FEMENINO' || sexoValue === 'FEMALE') {
+          return '[F]';
+        } else if (sexoValue === 'O' || sexoValue === 'OTRO' || sexoValue === 'OTHER') {
+          return '[O]';
+        }
+        
+        // Si no coincide con ninguno, agregar corchetes si no los tiene y retornar
+        if (sexoValue.length === 1) {
+          return `[${sexoValue}]`;
+        }
+        
+        // Si tiene más de un carácter y no tiene corchetes, intentar extraer el código
+        return sexoValue;
+      })(),
       documentNumber: p.dni || '',
       documentType: p.tipoDoc?.toUpperCase() || 'DNI',
       cuilCuit: p.cuil || '',
