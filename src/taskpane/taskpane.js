@@ -2353,8 +2353,7 @@ function crearElementoVuelo(index, vuelo = {}, esDeExtraccion = false) {
   vueloDiv.className = "vuelo-item";
   vueloDiv.dataset.vueloIndex = index;
   
-  const readonlyAttr = esDeExtraccion ? 'readonly' : '';
-  
+  // Los campos de vuelos siempre son editables
   vueloDiv.innerHTML = `
     <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 16px;">
       <h4 style="margin: 0;">Vuelo ${index + 1}</h4>
@@ -2362,35 +2361,35 @@ function crearElementoVuelo(index, vuelo = {}, esDeExtraccion = false) {
     </div>
     <div class="form-group">
       <label>Aerolínea:</label>
-      <input type="text" id="vuelo_airline_${index}" value="${vuelo.airline || ''}" ${readonlyAttr}>
+      <input type="text" id="vuelo_airline_${index}" value="${vuelo.airline || ''}">
     </div>
     <div class="form-group">
       <label>Número de Vuelo:</label>
-      <input type="text" id="vuelo_flightNumber_${index}" value="${vuelo.flightNumber || ''}" ${readonlyAttr}>
+      <input type="text" id="vuelo_flightNumber_${index}" value="${vuelo.flightNumber || ''}">
     </div>
     <div class="form-group">
       <label>Origen:</label>
-      <input type="text" id="vuelo_origin_${index}" value="${vuelo.origin || ''}" ${readonlyAttr}>
+      <input type="text" id="vuelo_origin_${index}" value="${vuelo.origin || ''}">
     </div>
     <div class="form-group">
       <label>Destino:</label>
-      <input type="text" id="vuelo_destination_${index}" value="${vuelo.destination || ''}" ${readonlyAttr}>
+      <input type="text" id="vuelo_destination_${index}" value="${vuelo.destination || ''}">
     </div>
     <div class="form-group">
       <label>Fecha de Salida:</label>
-      <input type="date" id="vuelo_departureDate_${index}" value="${departureDate}" ${readonlyAttr}>
+      <input type="date" id="vuelo_departureDate_${index}" value="${departureDate}">
     </div>
     <div class="form-group">
       <label>Hora de Salida:</label>
-      <input type="time" id="vuelo_departureTime_${index}" value="${departureTime}" ${readonlyAttr}>
+      <input type="time" id="vuelo_departureTime_${index}" value="${departureTime}">
     </div>
     <div class="form-group">
       <label>Fecha de Llegada:</label>
-      <input type="date" id="vuelo_arrivalDate_${index}" value="${arrivalDate}" ${readonlyAttr}>
+      <input type="date" id="vuelo_arrivalDate_${index}" value="${arrivalDate}">
     </div>
     <div class="form-group">
       <label>Hora de Llegada:</label>
-      <input type="time" id="vuelo_arrivalTime_${index}" value="${arrivalTime}" ${readonlyAttr}>
+      <input type="time" id="vuelo_arrivalTime_${index}" value="${arrivalTime}">
     </div>
   `;
   
@@ -2485,18 +2484,7 @@ function eliminarVuelo(vueloDiv) {
     const vuelosContainer = document.getElementById("vuelosContainer");
     if (!vuelosContainer) return;
     
-    const vueloItems = vuelosContainer.querySelectorAll(".vuelo-item");
-    
-    // No permitir eliminar si solo hay un vuelo y es de extracción (readonly)
-    if (vueloItems.length <= 1) {
-      const primerCampo = vueloDiv.querySelector("[readonly]");
-      if (primerCampo) {
-        mostrarMensaje("Debe haber al menos un vuelo cuando vienen de la extracción", "info");
-        return;
-      }
-    }
-    
-    // Eliminar el vuelo
+    // Eliminar el vuelo directamente sin restricciones
     vueloDiv.remove();
     
     // Renumerar vuelos
