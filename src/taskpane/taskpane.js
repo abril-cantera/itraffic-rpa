@@ -169,6 +169,30 @@ Office.onReady((info) => {
         };
       }
       
+      // Asignar evento al botón de agregar vuelo
+      const agregarVueloButton = document.getElementById("agregarVuelo");
+      if (agregarVueloButton) {
+        agregarVueloButton.onclick = function() {
+          try {
+            agregarNuevoVuelo();
+          } catch (error) {
+            mostrarMensaje("Error al agregar vuelo: " + error.message, "error");
+          }
+        };
+      }
+      
+      // Asignar evento al botón de eliminar hotel
+      const eliminarHotelButton = document.getElementById("eliminarHotel");
+      if (eliminarHotelButton) {
+        eliminarHotelButton.onclick = function() {
+          try {
+            eliminarHotel();
+          } catch (error) {
+            mostrarMensaje("Error al eliminar hotel: " + error.message, "error");
+          }
+        };
+      }
+      
       // Asignar evento al botón de crear reserva
       const crearReservaButton = document.getElementById("crearReserva");
       if (crearReservaButton) {
@@ -1623,6 +1647,7 @@ function llenarDatosReserva(datosExtraidos) {
     // Hotel (ahora es un objeto) - Solo mostrar si viene de la extracción
     const hotelSection = document.getElementById("hotelSection");
     const agregarHotelButton = document.getElementById("agregarHotel");
+    const eliminarHotelButton = document.getElementById("eliminarHotel");
     
     if (datosExtraidos.hotel && typeof datosExtraidos.hotel === 'object') {
       // Mostrar sección de hotel y hacer campos required
@@ -1631,6 +1656,9 @@ function llenarDatosReserva(datosExtraidos) {
       }
       if (agregarHotelButton) {
         agregarHotelButton.style.display = "none";
+      }
+      if (eliminarHotelButton) {
+        eliminarHotelButton.style.display = "block";
       }
       
       // Llenar campos y hacerlos required
@@ -1668,6 +1696,9 @@ function llenarDatosReserva(datosExtraidos) {
       if (agregarHotelButton) {
         agregarHotelButton.style.display = "none";
       }
+      if (eliminarHotelButton) {
+        eliminarHotelButton.style.display = "block";
+      }
       
       const camposHotel = ['hotel_nombre', 'hotel_tipo_habitacion', 'hotel_ciudad', 'hotel_in', 'hotel_out'];
       camposHotel.forEach(campoId => {
@@ -1687,6 +1718,9 @@ function llenarDatosReserva(datosExtraidos) {
       }
       if (agregarHotelButton) {
         agregarHotelButton.style.display = "block";
+      }
+      if (eliminarHotelButton) {
+        eliminarHotelButton.style.display = "none";
       }
       
       // Quitar required de campos de hotel
@@ -2058,6 +2092,7 @@ function agregarNuevoServicio() {
 function mostrarSeccionHotel() {
   const hotelSection = document.getElementById("hotelSection");
   const agregarHotelButton = document.getElementById("agregarHotel");
+  const eliminarHotelButton = document.getElementById("eliminarHotel");
   
   if (hotelSection) {
     hotelSection.style.display = "block";
@@ -2065,6 +2100,11 @@ function mostrarSeccionHotel() {
   
   if (agregarHotelButton) {
     agregarHotelButton.style.display = "none";
+  }
+  
+  // Mostrar botón de eliminar hotel
+  if (eliminarHotelButton) {
+    eliminarHotelButton.style.display = "block";
   }
   
   // Hacer campos required cuando se agrega manualmente
@@ -2186,63 +2226,277 @@ function renumerarServicios() {
 }
 
 /**
+ * Crea un elemento de vuelo en el formulario
+ * @param {number} index - Índice del vuelo
+ * @param {Object} vuelo - Datos del vuelo (opcional)
+ * @param {boolean} esDeExtraccion - Si el vuelo viene de la extracción de IA
+ * @returns {HTMLElement} El elemento div del vuelo
+ */
+function crearElementoVuelo(index, vuelo = {}, esDeExtraccion = false) {
+  // Mapear campos del backend a los campos del formulario
+  // El backend envía: departureDate, departureTime, arrivalDate, arrivalTime
+  // También mantener compatibilidad con formato antiguo: date, time
+  const departureDate = vuelo.departureDate || vuelo.date || '';
+  const departureTime = vuelo.departureTime || vuelo.time || '';
+  const arrivalDate = vuelo.arrivalDate || '';
+  const arrivalTime = vuelo.arrivalTime || '';
+  
+  const vueloDiv = document.createElement("div");
+  vueloDiv.className = "vuelo-item";
+  vueloDiv.dataset.vueloIndex = index;
+  
+  const readonlyAttr = esDeExtraccion ? 'readonly' : '';
+  
+  vueloDiv.innerHTML = `
+    <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 16px;">
+      <h4 style="margin: 0;">Vuelo ${index + 1}</h4>
+      <button class="btn-eliminar-vuelo" title="Eliminar vuelo" data-vuelo-index="${index}">✕</button>
+    </div>
+    <div class="form-group">
+      <label>Aerolínea:</label>
+      <input type="text" id="vuelo_airline_${index}" value="${vuelo.airline || ''}" ${readonlyAttr}>
+    </div>
+    <div class="form-group">
+      <label>Número de Vuelo:</label>
+      <input type="text" id="vuelo_flightNumber_${index}" value="${vuelo.flightNumber || ''}" ${readonlyAttr}>
+    </div>
+    <div class="form-group">
+      <label>Origen:</label>
+      <input type="text" id="vuelo_origin_${index}" value="${vuelo.origin || ''}" ${readonlyAttr}>
+    </div>
+    <div class="form-group">
+      <label>Destino:</label>
+      <input type="text" id="vuelo_destination_${index}" value="${vuelo.destination || ''}" ${readonlyAttr}>
+    </div>
+    <div class="form-group">
+      <label>Fecha de Salida:</label>
+      <input type="date" id="vuelo_departureDate_${index}" value="${departureDate}" ${readonlyAttr}>
+    </div>
+    <div class="form-group">
+      <label>Hora de Salida:</label>
+      <input type="time" id="vuelo_departureTime_${index}" value="${departureTime}" ${readonlyAttr}>
+    </div>
+    <div class="form-group">
+      <label>Fecha de Llegada:</label>
+      <input type="date" id="vuelo_arrivalDate_${index}" value="${arrivalDate}" ${readonlyAttr}>
+    </div>
+    <div class="form-group">
+      <label>Hora de Llegada:</label>
+      <input type="time" id="vuelo_arrivalTime_${index}" value="${arrivalTime}" ${readonlyAttr}>
+    </div>
+  `;
+  
+  // Agregar event listener al botón de eliminar
+  setTimeout(() => {
+    const btnEliminar = vueloDiv.querySelector('.btn-eliminar-vuelo');
+    if (btnEliminar) {
+      btnEliminar.onclick = function(e) {
+        e.stopPropagation();
+        eliminarVuelo(vueloDiv);
+      };
+    }
+  }, 100);
+  
+  return vueloDiv;
+}
+
+/**
  * Llena los vuelos en el formulario
  * @param {Array} vuelos - Array de vuelos extraídos
  */
 function llenarVuelos(vuelos) {
   const vuelosContainer = document.getElementById("vuelosContainer");
+  const vuelosSection = document.getElementById("vuelosSection");
   if (!vuelosContainer) return;
   
   vuelosContainer.innerHTML = "";
   
+  // Mostrar sección de vuelos
+  if (vuelosSection) {
+    vuelosSection.style.display = "block";
+  }
+  
+  // Mostrar botón de agregar vuelo
+  const agregarVueloButton = document.getElementById("agregarVuelo");
+  if (agregarVueloButton) {
+    agregarVueloButton.style.display = "block";
+  }
+  
   vuelos.forEach((vuelo, index) => {
-    // Mapear campos del backend a los campos del formulario
-    // El backend envía: departureDate, departureTime, arrivalDate, arrivalTime
-    // También mantener compatibilidad con formato antiguo: date, time
-    const departureDate = vuelo.departureDate || vuelo.date || '';
-    const departureTime = vuelo.departureTime || vuelo.time || '';
-    const arrivalDate = vuelo.arrivalDate || '';
-    const arrivalTime = vuelo.arrivalTime || '';
-    
-    const vueloDiv = document.createElement("div");
-    vueloDiv.className = "vuelo-item";
-    vueloDiv.innerHTML = `
-      <h4>Vuelo ${index + 1}</h4>
-      <div class="form-group">
-        <label>Aerolínea:</label>
-        <input type="text" id="vuelo_airline_${index}" value="${vuelo.airline || ''}" readonly>
-      </div>
-      <div class="form-group">
-        <label>Número de Vuelo:</label>
-        <input type="text" id="vuelo_flightNumber_${index}" value="${vuelo.flightNumber || ''}" readonly>
-      </div>
-      <div class="form-group">
-        <label>Origen:</label>
-        <input type="text" id="vuelo_origin_${index}" value="${vuelo.origin || ''}" readonly>
-      </div>
-      <div class="form-group">
-        <label>Destino:</label>
-        <input type="text" id="vuelo_destination_${index}" value="${vuelo.destination || ''}" readonly>
-      </div>
-      <div class="form-group">
-        <label>Fecha de Salida:</label>
-        <input type="date" id="vuelo_departureDate_${index}" value="${departureDate}" readonly>
-      </div>
-      <div class="form-group">
-        <label>Hora de Salida:</label>
-        <input type="time" id="vuelo_departureTime_${index}" value="${departureTime}" readonly>
-      </div>
-      <div class="form-group">
-        <label>Fecha de Llegada:</label>
-        <input type="date" id="vuelo_arrivalDate_${index}" value="${arrivalDate}" readonly>
-      </div>
-      <div class="form-group">
-        <label>Hora de Llegada:</label>
-        <input type="time" id="vuelo_arrivalTime_${index}" value="${arrivalTime}" readonly>
-      </div>
-    `;
+    const vueloDiv = crearElementoVuelo(index, vuelo, true);
     vuelosContainer.appendChild(vueloDiv);
   });
+  
+  // Actualizar estado del botón después de crear los vuelos
+  setTimeout(() => actualizarEstadoBotonCrearReserva(), 200);
+}
+
+/**
+ * Agrega un nuevo vuelo manualmente
+ */
+function agregarNuevoVuelo() {
+  const vuelosContainer = document.getElementById("vuelosContainer");
+  const vuelosSection = document.getElementById("vuelosSection");
+  
+  if (!vuelosContainer) return;
+  
+  // Mostrar sección si está oculta
+  if (vuelosSection) {
+    vuelosSection.style.display = "block";
+  }
+  
+  // Mostrar botón de agregar vuelo
+  const agregarVueloButton = document.getElementById("agregarVuelo");
+  if (agregarVueloButton) {
+    agregarVueloButton.style.display = "block";
+  }
+  
+  // Contar vuelos existentes
+  const vueloItems = vuelosContainer.querySelectorAll(".vuelo-item");
+  const nuevoIndex = vueloItems.length;
+  
+  // Crear nuevo vuelo (sin readonly porque es manual)
+  const nuevoVuelo = crearElementoVuelo(nuevoIndex, {}, false);
+  vuelosContainer.appendChild(nuevoVuelo);
+  
+  // Scroll suave hacia el nuevo vuelo
+  if (nuevoVuelo.scrollIntoView) {
+    nuevoVuelo.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+  }
+  
+  // Actualizar estado del botón
+  setTimeout(() => actualizarEstadoBotonCrearReserva(), 200);
+}
+
+/**
+ * Elimina un vuelo del formulario
+ * @param {HTMLElement} vueloDiv - El elemento div del vuelo a eliminar
+ */
+function eliminarVuelo(vueloDiv) {
+  try {
+    const vuelosContainer = document.getElementById("vuelosContainer");
+    if (!vuelosContainer) return;
+    
+    const vueloItems = vuelosContainer.querySelectorAll(".vuelo-item");
+    
+    // No permitir eliminar si solo hay un vuelo y es de extracción (readonly)
+    if (vueloItems.length <= 1) {
+      const primerCampo = vueloDiv.querySelector("[readonly]");
+      if (primerCampo) {
+        mostrarMensaje("Debe haber al menos un vuelo cuando vienen de la extracción", "info");
+        return;
+      }
+    }
+    
+    // Eliminar el vuelo
+    vueloDiv.remove();
+    
+    // Renumerar vuelos
+    renumerarVuelos();
+    
+    mostrarMensaje("Vuelo eliminado correctamente", "success");
+    
+    // Actualizar estado del botón después de eliminar
+    setTimeout(() => actualizarEstadoBotonCrearReserva(), 200);
+  } catch (error) {
+    mostrarMensaje("Error al eliminar vuelo", "error");
+  }
+}
+
+/**
+ * Renumera los vuelos después de eliminar uno
+ */
+function renumerarVuelos() {
+  const vuelosContainer = document.getElementById("vuelosContainer");
+  if (!vuelosContainer) return;
+  
+  const vueloItems = Array.from(vuelosContainer.querySelectorAll(".vuelo-item"));
+  
+  vueloItems.forEach((vueloDiv, index) => {
+    const nuevoIndex = index;
+    
+    // Actualizar el dataset
+    vueloDiv.dataset.vueloIndex = nuevoIndex;
+    
+    // Actualizar el título
+    const tituloDiv = vueloDiv.querySelector("div:first-child");
+    if (tituloDiv) {
+      const titulo = tituloDiv.querySelector("h4");
+      if (titulo) {
+        titulo.textContent = `Vuelo ${nuevoIndex + 1}`;
+      }
+    }
+    
+    // Actualizar IDs de todos los campos
+    const campos = [
+      'vuelo_airline',
+      'vuelo_flightNumber',
+      'vuelo_origin',
+      'vuelo_destination',
+      'vuelo_departureDate',
+      'vuelo_departureTime',
+      'vuelo_arrivalDate',
+      'vuelo_arrivalTime'
+    ];
+    
+    campos.forEach(campoBase => {
+      const campoViejo = vueloDiv.querySelector(`[id^="${campoBase}_"]`);
+      if (campoViejo) {
+        const valorActual = campoViejo.value;
+        campoViejo.id = `${campoBase}_${nuevoIndex}`;
+        campoViejo.value = valorActual;
+      }
+    });
+    
+    // Actualizar el data-vuelo-index del botón eliminar
+    const btnEliminar = vueloDiv.querySelector('.btn-eliminar-vuelo');
+    if (btnEliminar) {
+      btnEliminar.setAttribute('data-vuelo-index', nuevoIndex);
+    }
+  });
+}
+
+/**
+ * Elimina el hotel del formulario
+ */
+function eliminarHotel() {
+  try {
+    const hotelSection = document.getElementById("hotelSection");
+    const agregarHotelButton = document.getElementById("agregarHotel");
+    
+    if (!hotelSection) return;
+    
+    // Limpiar campos del hotel
+    const camposHotel = ['hotel_nombre', 'hotel_tipo_habitacion', 'hotel_ciudad', 'hotel_categoria', 'hotel_in', 'hotel_out'];
+    camposHotel.forEach(campoId => {
+      const campo = document.getElementById(campoId);
+      if (campo) {
+        campo.value = "";
+        campo.required = false;
+      }
+    });
+    
+    // Ocultar sección de hotel
+    hotelSection.style.display = "none";
+    
+    // Mostrar botón de agregar hotel
+    if (agregarHotelButton) {
+      agregarHotelButton.style.display = "block";
+    }
+    
+    // Ocultar botón de eliminar hotel
+    const eliminarHotelButton = document.getElementById("eliminarHotel");
+    if (eliminarHotelButton) {
+      eliminarHotelButton.style.display = "none";
+    }
+    
+    mostrarMensaje("Hotel eliminado correctamente", "success");
+    
+    // Actualizar estado del botón después de eliminar
+    setTimeout(() => actualizarEstadoBotonCrearReserva(), 200);
+  } catch (error) {
+    mostrarMensaje("Error al eliminar hotel", "error");
+  }
 }
 
 /**
@@ -2552,6 +2806,12 @@ function resetearAplicacion() {
   const vuelosSection = document.getElementById("vuelosSection");
   if (vuelosSection) {
     vuelosSection.style.display = "none";
+  }
+  
+  // Ocultar botón de agregar vuelo
+  const agregarVueloButton = document.getElementById("agregarVuelo");
+  if (agregarVueloButton) {
+    agregarVueloButton.style.display = "none";
   }
   
   // Ocultar botón de crear otra reserva si existe
