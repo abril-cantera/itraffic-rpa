@@ -2196,6 +2196,14 @@ function llenarVuelos(vuelos) {
   vuelosContainer.innerHTML = "";
   
   vuelos.forEach((vuelo, index) => {
+    // Mapear campos del backend a los campos del formulario
+    // El backend envía: departureDate, departureTime, arrivalDate, arrivalTime
+    // También mantener compatibilidad con formato antiguo: date, time
+    const departureDate = vuelo.departureDate || vuelo.date || '';
+    const departureTime = vuelo.departureTime || vuelo.time || '';
+    const arrivalDate = vuelo.arrivalDate || '';
+    const arrivalTime = vuelo.arrivalTime || '';
+    
     const vueloDiv = document.createElement("div");
     vueloDiv.className = "vuelo-item";
     vueloDiv.innerHTML = `
@@ -2217,12 +2225,20 @@ function llenarVuelos(vuelos) {
         <input type="text" id="vuelo_destination_${index}" value="${vuelo.destination || ''}" readonly>
       </div>
       <div class="form-group">
-        <label>Fecha:</label>
-        <input type="date" id="vuelo_date_${index}" value="${vuelo.date || ''}" readonly>
+        <label>Fecha de Salida:</label>
+        <input type="date" id="vuelo_departureDate_${index}" value="${departureDate}" readonly>
       </div>
       <div class="form-group">
-        <label>Hora:</label>
-        <input type="time" id="vuelo_time_${index}" value="${vuelo.time || ''}" readonly>
+        <label>Hora de Salida:</label>
+        <input type="time" id="vuelo_departureTime_${index}" value="${departureTime}" readonly>
+      </div>
+      <div class="form-group">
+        <label>Fecha de Llegada:</label>
+        <input type="date" id="vuelo_arrivalDate_${index}" value="${arrivalDate}" readonly>
+      </div>
+      <div class="form-group">
+        <label>Hora de Llegada:</label>
+        <input type="time" id="vuelo_arrivalTime_${index}" value="${arrivalTime}" readonly>
       </div>
     `;
     vuelosContainer.appendChild(vueloDiv);
@@ -3024,8 +3040,10 @@ async function ejecutarCrearReserva() {
           flightNumber: document.getElementById(`vuelo_flightNumber_${index}`)?.value || "",
           origin: document.getElementById(`vuelo_origin_${index}`)?.value || "",
           destination: document.getElementById(`vuelo_destination_${index}`)?.value || "",
-          date: document.getElementById(`vuelo_date_${index}`)?.value || "",
-          time: document.getElementById(`vuelo_time_${index}`)?.value || ""
+          departureDate: document.getElementById(`vuelo_departureDate_${index}`)?.value || "",
+          departureTime: document.getElementById(`vuelo_departureTime_${index}`)?.value || "",
+          arrivalDate: document.getElementById(`vuelo_arrivalDate_${index}`)?.value || "",
+          arrivalTime: document.getElementById(`vuelo_arrivalTime_${index}`)?.value || ""
         });
       });
     }
