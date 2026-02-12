@@ -567,6 +567,12 @@ async function run(isReExtract = false) {
               reextractButton.style.display = "block";
             }
             
+            // Mostrar botón de agregar vuelo siempre cuando hay resultados (para poder agregar vuelos manualmente)
+            const agregarVueloButton = document.getElementById("agregarVuelo");
+            if (agregarVueloButton) {
+              agregarVueloButton.style.display = "block";
+            }
+            
             if (extractedData && extractedData.passengers && extractedData.passengers.length > 0) {
               // Convertir explícitamente a booleano (puede venir como string "true"/"false" o booleano)
               const didExtractionExistRaw = extractedData.didExtractionExist;
@@ -619,6 +625,11 @@ async function run(isReExtract = false) {
             } else {
               // Si no se extrajeron pasajeros, crear un formulario vacío
               crearFormulariosPasajeros(1);
+              // Mostrar botón de agregar vuelo siempre cuando hay resultados (para poder agregar vuelos manualmente)
+              const agregarVueloButton = document.getElementById("agregarVuelo");
+              if (agregarVueloButton) {
+                agregarVueloButton.style.display = "block";
+              }
               mostrarMensaje("No se pudieron extraer datos. Por favor, llena el formulario manualmente.", "info");
             }
           } catch (error) {
@@ -632,6 +643,12 @@ async function run(isReExtract = false) {
             const mainContainer = document.querySelector(".ms-welcome__main");
             if (mainContainer) {
               mainContainer.classList.remove("no-scroll");
+            }
+            
+            // Mostrar botón de agregar vuelo siempre cuando hay resultados (para poder agregar vuelos manualmente)
+            const agregarVueloButton = document.getElementById("agregarVuelo");
+            if (agregarVueloButton) {
+              agregarVueloButton.style.display = "block";
             }
             
             // Si falla la extracción, crear un formulario vacío
