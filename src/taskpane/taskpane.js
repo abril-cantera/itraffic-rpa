@@ -1392,8 +1392,10 @@ async function guardarDatos() {
     
     // Capturar servicios
     const servicios = [];
+    const serviciosSection = document.getElementById("serviciosSection");
     const serviciosContainer = document.getElementById("serviciosContainer");
-    if (serviciosContainer) {
+    // Solo capturar servicios si la sección está visible
+    if (serviciosSection && serviciosSection.style.display !== "none" && serviciosContainer) {
       const servicioItems = serviciosContainer.querySelectorAll(".servicio-item");
       servicioItems.forEach((item, index) => {
         servicios.push({
@@ -1412,8 +1414,10 @@ async function guardarDatos() {
     
     // Capturar vuelos
     const vuelos = [];
+    const vuelosSection = document.getElementById("vuelosSection");
     const vuelosContainer = document.getElementById("vuelosContainer");
-    if (vuelosContainer) {
+    // Solo capturar vuelos si la sección está visible
+    if (vuelosSection && vuelosSection.style.display !== "none" && vuelosContainer) {
       const vueloItems = vuelosContainer.querySelectorAll(".vuelo-item");
       vueloItems.forEach((item, index) => {
         vuelos.push({
@@ -3396,8 +3400,10 @@ async function ejecutarCrearReserva() {
     
     // Capturar servicios
     const servicios = [];
+    let serviciosSection = document.getElementById("serviciosSection");
     const serviciosContainer = document.getElementById("serviciosContainer");
-    if (serviciosContainer) {
+    // Solo capturar servicios si la sección está visible
+    if (serviciosSection && serviciosSection.style.display !== "none" && serviciosContainer) {
       const servicioItems = serviciosContainer.querySelectorAll(".servicio-item");
       servicioItems.forEach((item, index) => {
         servicios.push({
@@ -3416,8 +3422,10 @@ async function ejecutarCrearReserva() {
     
     // Capturar vuelos
     const vuelos = [];
+    const vuelosSection = document.getElementById("vuelosSection");
     const vuelosContainer = document.getElementById("vuelosContainer");
-    if (vuelosContainer) {
+    // Solo capturar vuelos si la sección está visible
+    if (vuelosSection && vuelosSection.style.display !== "none" && vuelosContainer) {
       const vueloItems = vuelosContainer.querySelectorAll(".vuelo-item");
       vueloItems.forEach((item, index) => {
         vuelos.push({
@@ -3512,7 +3520,7 @@ async function ejecutarCrearReserva() {
     }
     
     // Validar campos obligatorios de servicios (solo si la sección está visible)
-    const serviciosSection = document.getElementById("serviciosSection");
+    // Reutilizar la variable serviciosSection ya declarada arriba
     if (serviciosSection && serviciosSection.style.display !== "none") {
       if (!datosReserva.services || datosReserva.services.length === 0) {
         // Solo requerir servicios si hay algún campo required en la sección
