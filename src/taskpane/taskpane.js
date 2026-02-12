@@ -1354,6 +1354,12 @@ async function guardarDatos() {
       provider: document.getElementById("proveedor")?.value || "",
       reservationCode: document.getElementById("codigoReserva")?.value || extractionState.reservationCode || "",
       hotel: (() => {
+        // Verificar primero si la sección está visible
+        const hotelSection = document.getElementById("hotelSection");
+        if (!hotelSection || hotelSection.style.display === "none") {
+          return null;
+        }
+        
         const nombreHotel = document.getElementById("hotel_nombre")?.value || "";
         const tipoHabitacion = document.getElementById("hotel_tipo_habitacion")?.value || "";
         const ciudad = document.getElementById("hotel_ciudad")?.value || "";
@@ -3351,6 +3357,12 @@ async function ejecutarCrearReserva() {
       provider: document.getElementById("proveedor")?.value || "",
       reservationCode: document.getElementById("codigoReserva")?.value || extractionState.reservationCode || "",
       hotel: (() => {
+        // Verificar primero si la sección está visible
+        const hotelSection = document.getElementById("hotelSection");
+        if (!hotelSection || hotelSection.style.display === "none") {
+          return null;
+        }
+        
         const nombreHotel = document.getElementById("hotel_nombre")?.value || "";
         const tipoHabitacion = document.getElementById("hotel_tipo_habitacion")?.value || "";
         const ciudad = document.getElementById("hotel_ciudad")?.value || "";
