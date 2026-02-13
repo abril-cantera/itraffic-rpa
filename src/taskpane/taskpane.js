@@ -1394,44 +1394,50 @@ async function guardarDatos() {
     const servicios = [];
     const serviciosSection = document.getElementById("serviciosSection");
     const serviciosContainer = document.getElementById("serviciosContainer");
-    // Solo capturar servicios si la sección está visible
+    // Solo capturar servicios si la sección está visible y hay elementos
     if (serviciosSection && serviciosSection.style.display !== "none" && serviciosContainer) {
       const servicioItems = serviciosContainer.querySelectorAll(".servicio-item");
-      servicioItems.forEach((item, index) => {
-        servicios.push({
-          destino: document.getElementById(`servicio_destino_${index}`)?.value || "",
-          in: document.getElementById(`servicio_in_${index}`)?.value || "",
-          out: document.getElementById(`servicio_out_${index}`)?.value || "",
-          nts: parseInt(document.getElementById(`servicio_nts_${index}`)?.value) || 0,
-          basePax: parseInt(document.getElementById(`servicio_basePax_${index}`)?.value) || 0,
-          servicio: document.getElementById(`servicio_servicio_${index}`)?.value || "",
-          descripcion: document.getElementById(`servicio_descripcion_${index}`)?.value || "",
-          estado: document.getElementById(`servicio_estado_${index}`)?.value || ""
+      if (servicioItems.length > 0) {
+        servicioItems.forEach((item, index) => {
+          servicios.push({
+            destino: document.getElementById(`servicio_destino_${index}`)?.value || "",
+            in: document.getElementById(`servicio_in_${index}`)?.value || "",
+            out: document.getElementById(`servicio_out_${index}`)?.value || "",
+            nts: parseInt(document.getElementById(`servicio_nts_${index}`)?.value) || 0,
+            basePax: parseInt(document.getElementById(`servicio_basePax_${index}`)?.value) || 0,
+            servicio: document.getElementById(`servicio_servicio_${index}`)?.value || "",
+            descripcion: document.getElementById(`servicio_descripcion_${index}`)?.value || "",
+            estado: document.getElementById(`servicio_estado_${index}`)?.value || ""
+          });
         });
-      });
+      }
     }
+    // Siempre asignar array vacío si no hay servicios
     datosReserva.services = servicios;
     
     // Capturar vuelos
     const vuelos = [];
     const vuelosSection = document.getElementById("vuelosSection");
     const vuelosContainer = document.getElementById("vuelosContainer");
-    // Solo capturar vuelos si la sección está visible
+    // Solo capturar vuelos si la sección está visible y hay elementos
     if (vuelosSection && vuelosSection.style.display !== "none" && vuelosContainer) {
       const vueloItems = vuelosContainer.querySelectorAll(".vuelo-item");
-      vueloItems.forEach((item, index) => {
-        vuelos.push({
-          airline: document.getElementById(`vuelo_airline_${index}`)?.value || "",
-          flightNumber: document.getElementById(`vuelo_flightNumber_${index}`)?.value || "",
-          origin: document.getElementById(`vuelo_origin_${index}`)?.value || "",
-          destination: document.getElementById(`vuelo_destination_${index}`)?.value || "",
-          departureDate: document.getElementById(`vuelo_departureDate_${index}`)?.value || "",
-          departureTime: document.getElementById(`vuelo_departureTime_${index}`)?.value || "",
-          arrivalDate: document.getElementById(`vuelo_arrivalDate_${index}`)?.value || "",
-          arrivalTime: document.getElementById(`vuelo_arrivalTime_${index}`)?.value || ""
+      if (vueloItems.length > 0) {
+        vueloItems.forEach((item, index) => {
+          vuelos.push({
+            airline: document.getElementById(`vuelo_airline_${index}`)?.value || "",
+            flightNumber: document.getElementById(`vuelo_flightNumber_${index}`)?.value || "",
+            origin: document.getElementById(`vuelo_origin_${index}`)?.value || "",
+            destination: document.getElementById(`vuelo_destination_${index}`)?.value || "",
+            departureDate: document.getElementById(`vuelo_departureDate_${index}`)?.value || "",
+            departureTime: document.getElementById(`vuelo_departureTime_${index}`)?.value || "",
+            arrivalDate: document.getElementById(`vuelo_arrivalDate_${index}`)?.value || "",
+            arrivalTime: document.getElementById(`vuelo_arrivalTime_${index}`)?.value || ""
+          });
         });
-      });
+      }
     }
+    // Siempre asignar array vacío si no hay vuelos
     datosReserva.flights = vuelos;
     
     // Preparar datos para enviar
@@ -2281,6 +2287,17 @@ function eliminarServicio(servicioDiv) {
     // Renumerar servicios
     renumerarServicios();
     
+    // Verificar si quedan servicios después de eliminar
+    const servicioItems = serviciosContainer.querySelectorAll(".servicio-item");
+    if (servicioItems.length === 0) {
+      // Si no hay servicios, ocultar la sección y limpiar el contenedor
+      const serviciosSection = document.getElementById("serviciosSection");
+      if (serviciosSection) {
+        serviciosSection.style.display = "none";
+      }
+      serviciosContainer.innerHTML = "";
+    }
+    
     mostrarMensaje("Servicio eliminado correctamente", "success");
     
     // Actualizar estado del botón después de eliminar
@@ -2516,6 +2533,17 @@ function eliminarVuelo(vueloDiv) {
     
     // Renumerar vuelos
     renumerarVuelos();
+    
+    // Verificar si quedan vuelos después de eliminar
+    const vueloItems = vuelosContainer.querySelectorAll(".vuelo-item");
+    if (vueloItems.length === 0) {
+      // Si no hay vuelos, ocultar la sección y limpiar el contenedor
+      const vuelosSection = document.getElementById("vuelosSection");
+      if (vuelosSection) {
+        vuelosSection.style.display = "none";
+      }
+      vuelosContainer.innerHTML = "";
+    }
     
     mostrarMensaje("Vuelo eliminado correctamente", "success");
     
@@ -3402,44 +3430,50 @@ async function ejecutarCrearReserva() {
     const servicios = [];
     let serviciosSection = document.getElementById("serviciosSection");
     const serviciosContainer = document.getElementById("serviciosContainer");
-    // Solo capturar servicios si la sección está visible
+    // Solo capturar servicios si la sección está visible y hay elementos
     if (serviciosSection && serviciosSection.style.display !== "none" && serviciosContainer) {
       const servicioItems = serviciosContainer.querySelectorAll(".servicio-item");
-      servicioItems.forEach((item, index) => {
-        servicios.push({
-          destino: document.getElementById(`servicio_destino_${index}`)?.value || "",
-          in: document.getElementById(`servicio_in_${index}`)?.value || "",
-          out: document.getElementById(`servicio_out_${index}`)?.value || "",
-          nts: parseInt(document.getElementById(`servicio_nts_${index}`)?.value) || 0,
-          basePax: parseInt(document.getElementById(`servicio_basePax_${index}`)?.value) || 0,
-          servicio: document.getElementById(`servicio_servicio_${index}`)?.value || "",
-          descripcion: document.getElementById(`servicio_descripcion_${index}`)?.value || "",
-          estado: document.getElementById(`servicio_estado_${index}`)?.value || ""
+      if (servicioItems.length > 0) {
+        servicioItems.forEach((item, index) => {
+          servicios.push({
+            destino: document.getElementById(`servicio_destino_${index}`)?.value || "",
+            in: document.getElementById(`servicio_in_${index}`)?.value || "",
+            out: document.getElementById(`servicio_out_${index}`)?.value || "",
+            nts: parseInt(document.getElementById(`servicio_nts_${index}`)?.value) || 0,
+            basePax: parseInt(document.getElementById(`servicio_basePax_${index}`)?.value) || 0,
+            servicio: document.getElementById(`servicio_servicio_${index}`)?.value || "",
+            descripcion: document.getElementById(`servicio_descripcion_${index}`)?.value || "",
+            estado: document.getElementById(`servicio_estado_${index}`)?.value || ""
+          });
         });
-      });
+      }
     }
+    // Siempre asignar array vacío si no hay servicios
     datosReserva.services = servicios;
     
     // Capturar vuelos
     const vuelos = [];
     const vuelosSection = document.getElementById("vuelosSection");
     const vuelosContainer = document.getElementById("vuelosContainer");
-    // Solo capturar vuelos si la sección está visible
+    // Solo capturar vuelos si la sección está visible y hay elementos
     if (vuelosSection && vuelosSection.style.display !== "none" && vuelosContainer) {
       const vueloItems = vuelosContainer.querySelectorAll(".vuelo-item");
-      vueloItems.forEach((item, index) => {
-        vuelos.push({
-          airline: document.getElementById(`vuelo_airline_${index}`)?.value || "",
-          flightNumber: document.getElementById(`vuelo_flightNumber_${index}`)?.value || "",
-          origin: document.getElementById(`vuelo_origin_${index}`)?.value || "",
-          destination: document.getElementById(`vuelo_destination_${index}`)?.value || "",
-          departureDate: document.getElementById(`vuelo_departureDate_${index}`)?.value || "",
-          departureTime: document.getElementById(`vuelo_departureTime_${index}`)?.value || "",
-          arrivalDate: document.getElementById(`vuelo_arrivalDate_${index}`)?.value || "",
-          arrivalTime: document.getElementById(`vuelo_arrivalTime_${index}`)?.value || ""
+      if (vueloItems.length > 0) {
+        vueloItems.forEach((item, index) => {
+          vuelos.push({
+            airline: document.getElementById(`vuelo_airline_${index}`)?.value || "",
+            flightNumber: document.getElementById(`vuelo_flightNumber_${index}`)?.value || "",
+            origin: document.getElementById(`vuelo_origin_${index}`)?.value || "",
+            destination: document.getElementById(`vuelo_destination_${index}`)?.value || "",
+            departureDate: document.getElementById(`vuelo_departureDate_${index}`)?.value || "",
+            departureTime: document.getElementById(`vuelo_departureTime_${index}`)?.value || "",
+            arrivalDate: document.getElementById(`vuelo_arrivalDate_${index}`)?.value || "",
+            arrivalTime: document.getElementById(`vuelo_arrivalTime_${index}`)?.value || ""
+          });
         });
-      });
+      }
     }
+    // Siempre asignar array vacío si no hay vuelos
     datosReserva.flights = vuelos;
     
     // VALIDAR CAMPOS OBLIGATORIOS
