@@ -1407,7 +1407,8 @@ async function guardarDatos() {
             basePax: parseInt(document.getElementById(`servicio_basePax_${index}`)?.value) || 0,
             servicio: document.getElementById(`servicio_servicio_${index}`)?.value || "",
             descripcion: document.getElementById(`servicio_descripcion_${index}`)?.value || "",
-            estado: document.getElementById(`servicio_estado_${index}`)?.value || ""
+            estado: document.getElementById(`servicio_estado_${index}`)?.value || "",
+            categoria: document.getElementById(`servicio_categoria_${index}`)?.value || ""
           });
         });
       }
@@ -2066,6 +2067,7 @@ function crearElementoServicio(index, servicio = {}, esDeExtraccion = false) {
   
   // Normalizar el estado del servicio
   const estadoNormalizado = normalizarEstadoServicio(servicio.estado || '');
+  const categoriaNormalizada = (servicio.categoria || servicio.Categoria || '').trim();
   
   // Crear el HTML con un datalist para autocompletado
   const datalistId = `serviciosList_${index}`;
@@ -2146,6 +2148,14 @@ function crearElementoServicio(index, servicio = {}, esDeExtraccion = false) {
         <option value="VO" ${estadoNormalizado === 'VO' ? 'selected' : ''}>VO - VOID [VO]</option>
       </select>
     </div>
+    <div class="form-group">
+      <label>Categoría:</label>
+      <select id="servicio_categoria_${index}">
+        <option value="">Seleccione...</option>
+        <option value="Regular" ${categoriaNormalizada === 'Regular' ? 'selected' : ''}>Regular</option>
+        <option value="Privado" ${categoriaNormalizada === 'Privado' ? 'selected' : ''}>Privado</option>
+      </select>
+    </div>
   `;
   
   // Agregar event listeners para validación en tiempo real
@@ -2158,7 +2168,8 @@ function crearElementoServicio(index, servicio = {}, esDeExtraccion = false) {
       `servicio_basePax_${index}`,
       `servicio_servicio_${index}`,
       `servicio_descripcion_${index}`,
-      `servicio_estado_${index}`
+      `servicio_estado_${index}`,
+      `servicio_categoria_${index}`
     ];
     
     camposServicio.forEach(campoId => {
@@ -2340,7 +2351,8 @@ function renumerarServicios() {
       'servicio_basePax',
       'servicio_servicio',
       'servicio_descripcion',
-      'servicio_estado'
+      'servicio_estado',
+      'servicio_categoria'
     ];
     
     campos.forEach(campoBase => {
@@ -3443,7 +3455,8 @@ async function ejecutarCrearReserva() {
             basePax: parseInt(document.getElementById(`servicio_basePax_${index}`)?.value) || 0,
             servicio: document.getElementById(`servicio_servicio_${index}`)?.value || "",
             descripcion: document.getElementById(`servicio_descripcion_${index}`)?.value || "",
-            estado: document.getElementById(`servicio_estado_${index}`)?.value || ""
+            estado: document.getElementById(`servicio_estado_${index}`)?.value || "",
+            categoria: document.getElementById(`servicio_categoria_${index}`)?.value || ""
           });
         });
       }
