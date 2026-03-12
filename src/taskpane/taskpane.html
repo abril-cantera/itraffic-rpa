@@ -103,6 +103,15 @@
                 </div>
 
                 <div class="form-group">
+                    <label>Moneda:</label>
+                    <select id="moneda">
+                        <option value="">Seleccione...</option>
+                        <option value="Dolar">Dolar</option>
+                        <option value="Peso">Peso</option>
+                    </select>
+                </div>
+
+                <div class="form-group">
                     <label>Fecha de Reserva:</label>
                     <input type="date" id="fechaReserva">
                 </div>
@@ -138,7 +147,11 @@
                         </div>
                         <div class="form-group">
                             <label>Categoría:</label>
-                            <input type="text" id="hotel_categoria" placeholder="Categoría del hotel">
+                            <select id="hotel_categoria">
+                                <option value="">Seleccione...</option>
+                                <option value="Regular">Regular</option>
+                                <option value="Privado">Privado</option>
+                            </select>
                         </div>
                         <div class="form-group">
                             <label>Fecha Entrada Hotel: <span style="color: #ef4444;">*</span></label>
