@@ -216,7 +216,7 @@ Office.onReady((info) => {
       });
       
       // Agregar event listeners para campos de hotel
-      const camposHotel = ['hotel_nombre', 'hotel_tipo_habitacion', 'hotel_ciudad', 'hotel_in', 'hotel_out'];
+      const camposHotel = ['hotel_nombre', 'hotel_tipo_habitacion', 'hotel_ciudad', 'hotel_categoria', 'hotel_prioridad', 'hotel_in', 'hotel_out'];
       camposHotel.forEach(campoId => {
         const campo = document.getElementById(campoId);
         if (campo) {
@@ -1364,6 +1364,7 @@ async function guardarDatos() {
         const tipoHabitacion = document.getElementById("hotel_tipo_habitacion")?.value || "";
         const ciudad = document.getElementById("hotel_ciudad")?.value || "";
         const categoria = document.getElementById("hotel_categoria")?.value || null;
+        const prioridad = document.getElementById("hotel_prioridad")?.value || null;
         const hotelIn = document.getElementById("hotel_in")?.value || "";
         const hotelOut = document.getElementById("hotel_out")?.value || "";
         
@@ -1376,6 +1377,7 @@ async function guardarDatos() {
           tipo_habitacion: tipoHabitacion,
           Ciudad: ciudad,
           Categoria: categoria || null,
+          Prioridad: prioridad || null,
           in: hotelIn,
           out: hotelOut
         };
@@ -1408,7 +1410,8 @@ async function guardarDatos() {
             servicio: document.getElementById(`servicio_servicio_${index}`)?.value || "",
             descripcion: document.getElementById(`servicio_descripcion_${index}`)?.value || "",
             estado: document.getElementById(`servicio_estado_${index}`)?.value || "",
-            categoria: document.getElementById(`servicio_categoria_${index}`)?.value || ""
+            categoria: document.getElementById(`servicio_categoria_${index}`)?.value || "",
+            prioridad: document.getElementById(`servicio_prioridad_${index}`)?.value || ""
           });
         });
       }
@@ -1815,7 +1818,7 @@ function llenarDatosReserva(datosExtraidos) {
       }
       
       // Llenar campos y hacerlos required
-      const camposHotel = ['hotel_nombre', 'hotel_tipo_habitacion', 'hotel_ciudad', 'hotel_in', 'hotel_out'];
+      const camposHotel = ['hotel_nombre', 'hotel_tipo_habitacion', 'hotel_ciudad', 'hotel_categoria', 'hotel_prioridad', 'hotel_in', 'hotel_out'];
       camposHotel.forEach(campoId => {
         const campo = document.getElementById(campoId);
         if (campo) {
@@ -1835,6 +1838,13 @@ function llenarDatosReserva(datosExtraidos) {
       if (document.getElementById("hotel_categoria")) {
         document.getElementById("hotel_categoria").value = datosExtraidos.hotel.Categoria || "";
       }
+      if (document.getElementById("hotel_prioridad")) {
+        let prioridadVal = datosExtraidos.hotel?.Prioridad || "";
+        if (prioridadVal && !prioridadVal.startsWith("[")) {
+          prioridadVal = "[" + prioridadVal + "]";
+        }
+        document.getElementById("hotel_prioridad").value = prioridadVal;
+      }
       if (document.getElementById("hotel_in")) {
         document.getElementById("hotel_in").value = datosExtraidos.hotel.in || "";
       }
@@ -1853,7 +1863,7 @@ function llenarDatosReserva(datosExtraidos) {
         eliminarHotelButton.style.display = "block";
       }
       
-      const camposHotel = ['hotel_nombre', 'hotel_tipo_habitacion', 'hotel_ciudad', 'hotel_in', 'hotel_out'];
+      const camposHotel = ['hotel_nombre', 'hotel_tipo_habitacion', 'hotel_ciudad', 'hotel_categoria', 'hotel_prioridad', 'hotel_in', 'hotel_out'];
       camposHotel.forEach(campoId => {
         const campo = document.getElementById(campoId);
         if (campo) {
@@ -1877,7 +1887,7 @@ function llenarDatosReserva(datosExtraidos) {
       }
       
       // Quitar required de campos de hotel
-      const camposHotel = ['hotel_nombre', 'hotel_tipo_habitacion', 'hotel_ciudad', 'hotel_in', 'hotel_out'];
+      const camposHotel = ['hotel_nombre', 'hotel_tipo_habitacion', 'hotel_ciudad', 'hotel_categoria', 'hotel_prioridad', 'hotel_in', 'hotel_out'];
       camposHotel.forEach(campoId => {
         const campo = document.getElementById(campoId);
         if (campo) {
@@ -2068,6 +2078,10 @@ function crearElementoServicio(index, servicio = {}, esDeExtraccion = false) {
   // Normalizar el estado del servicio
   const estadoNormalizado = normalizarEstadoServicio(servicio.estado || '');
   const categoriaNormalizada = (servicio.categoria || servicio.Categoria || '').trim();
+  let prioridadNormalizada = (servicio.prioridad || servicio.Prioridad || '').trim();
+  if (prioridadNormalizada && !prioridadNormalizada.startsWith('[')) {
+    prioridadNormalizada = '[' + prioridadNormalizada + ']';
+  }
   
   // Crear el HTML con un datalist para autocompletado
   const datalistId = `serviciosList_${index}`;
@@ -2112,8 +2126,8 @@ function crearElementoServicio(index, servicio = {}, esDeExtraccion = false) {
       </datalist>
     </div>
     <div class="form-group">
-      <label>Descripción: ${requiredSpan}</label>
-      <textarea id="servicio_descripcion_${index}" ${requiredAttr}>${servicio.descripcion || ''}</textarea>
+      <label>Descripción:</label>
+      <textarea id="servicio_descripcion_${index}">${servicio.descripcion || ''}</textarea>
     </div>
     <div class="form-group">
       <label>Estado: ${requiredSpan}</label>
@@ -2149,11 +2163,26 @@ function crearElementoServicio(index, servicio = {}, esDeExtraccion = false) {
       </select>
     </div>
     <div class="form-group">
-      <label>Categoría:</label>
-      <select id="servicio_categoria_${index}">
+      <label>Categoría: <span style="color: #ef4444;">*</span></label>
+      <select id="servicio_categoria_${index}" required>
         <option value="">Seleccione...</option>
         <option value="Regular" ${categoriaNormalizada === 'Regular' ? 'selected' : ''}>Regular</option>
         <option value="Privado" ${categoriaNormalizada === 'Privado' ? 'selected' : ''}>Privado</option>
+      </select>
+    </div>
+    <div class="form-group">
+      <label>Prioridad: <span style="color: #ef4444;">*</span></label>
+      <select id="servicio_prioridad_${index}" required>
+        <option value="">Seleccione...</option>
+        <option value="[1]" ${prioridadNormalizada === '[1]' ? 'selected' : ''}>Unica [1]</option>
+        <option value="[NA]" ${prioridadNormalizada === '[NA]' ? 'selected' : ''}>NACIONAL [NA]</option>
+        <option value="[EX]" ${prioridadNormalizada === '[EX]' ? 'selected' : ''}>EXTRANJERO [EX]</option>
+        <option value="[DE]" ${prioridadNormalizada === '[DE]' ? 'selected' : ''}>DESPEGAR [DE]</option>
+        <option value="[VD]" ${prioridadNormalizada === '[VD]' ? 'selected' : ''}>VENTA DIRECTA [VD]</option>
+        <option value="[NE]" ${prioridadNormalizada === '[NE]' ? 'selected' : ''}>NACIONAL EXTRANJERO [NE]</option>
+        <option value="[AZUL]" ${prioridadNormalizada === '[AZUL]' ? 'selected' : ''}>AZUL VIAGENS [AZUL]</option>
+        <option value="[AZ]" ${prioridadNormalizada === '[AZ]' ? 'selected' : ''}>AZUL VIAGENS [AZ]</option>
+        <option value="[CV]" ${prioridadNormalizada === '[CV]' ? 'selected' : ''}>CVC [CV]</option>
       </select>
     </div>
   `;
@@ -2169,7 +2198,8 @@ function crearElementoServicio(index, servicio = {}, esDeExtraccion = false) {
       `servicio_servicio_${index}`,
       `servicio_descripcion_${index}`,
       `servicio_estado_${index}`,
-      `servicio_categoria_${index}`
+      `servicio_categoria_${index}`,
+      `servicio_prioridad_${index}`
     ];
     
     camposServicio.forEach(campoId => {
@@ -2271,7 +2301,7 @@ function mostrarSeccionHotel() {
   }
   
   // Hacer campos required cuando se agrega manualmente
-  const camposHotel = ['hotel_nombre', 'hotel_tipo_habitacion', 'hotel_ciudad', 'hotel_in', 'hotel_out'];
+  const camposHotel = ['hotel_nombre', 'hotel_tipo_habitacion', 'hotel_ciudad', 'hotel_categoria', 'hotel_prioridad', 'hotel_in', 'hotel_out'];
   camposHotel.forEach(campoId => {
     const campo = document.getElementById(campoId);
     if (campo) {
@@ -2352,7 +2382,8 @@ function renumerarServicios() {
       'servicio_servicio',
       'servicio_descripcion',
       'servicio_estado',
-      'servicio_categoria'
+      'servicio_categoria',
+      'servicio_prioridad'
     ];
     
     campos.forEach(campoBase => {
@@ -2630,7 +2661,7 @@ function eliminarHotel() {
     if (!hotelSection) return;
     
     // Limpiar campos del hotel
-    const camposHotel = ['hotel_nombre', 'hotel_tipo_habitacion', 'hotel_ciudad', 'hotel_categoria', 'hotel_in', 'hotel_out'];
+    const camposHotel = ['hotel_nombre', 'hotel_tipo_habitacion', 'hotel_ciudad', 'hotel_categoria', 'hotel_prioridad', 'hotel_in', 'hotel_out'];
     camposHotel.forEach(campoId => {
       const campo = document.getElementById(campoId);
       if (campo) {
@@ -2695,13 +2726,15 @@ function validarCamposObligatorios() {
   const fechaViaje = document.getElementById("fechaViaje")?.value || "";
   const vendedor = document.getElementById("vendedor")?.value || "";
   const cliente = document.getElementById("cliente")?.value || "";
+  const moneda = document.getElementById("moneda")?.value || "";
   
   const reservaValida = 
     tipoReserva.trim() !== "" &&
     estadoReserva.trim() !== "" &&
     fechaViaje.trim() !== "" &&
     vendedor.trim() !== "" &&
-    cliente.trim() !== "";
+    cliente.trim() !== "" &&
+    moneda.trim() !== "";
   
   // Validar campos obligatorios del hotel (solo si la sección está visible)
   const hotelSection = document.getElementById("hotelSection");
@@ -2711,6 +2744,8 @@ function validarCamposObligatorios() {
     const hotelNombre = document.getElementById("hotel_nombre");
     const hotelTipoHabitacion = document.getElementById("hotel_tipo_habitacion");
     const hotelCiudad = document.getElementById("hotel_ciudad");
+    const hotelCategoria = document.getElementById("hotel_categoria");
+    const hotelPrioridad = document.getElementById("hotel_prioridad");
     const hotelIn = document.getElementById("hotel_in");
     const hotelOut = document.getElementById("hotel_out");
     
@@ -2722,6 +2757,12 @@ function validarCamposObligatorios() {
       hotelValido = false;
     }
     if (hotelCiudad?.required && (!hotelCiudad.value || hotelCiudad.value.trim() === "")) {
+      hotelValido = false;
+    }
+    if (hotelCategoria?.required && (!hotelCategoria.value || hotelCategoria.value.trim() === "")) {
+      hotelValido = false;
+    }
+    if (hotelPrioridad?.required && (!hotelPrioridad.value || hotelPrioridad.value.trim() === "")) {
       hotelValido = false;
     }
     if (hotelIn?.required && (!hotelIn.value || hotelIn.value.trim() === "")) {
@@ -2748,8 +2789,9 @@ function validarCamposObligatorios() {
         const nts = document.getElementById(`servicio_nts_${index}`);
         const basePax = document.getElementById(`servicio_basePax_${index}`);
         const servicio = document.getElementById(`servicio_servicio_${index}`);
-        const descripcion = document.getElementById(`servicio_descripcion_${index}`);
         const estado = document.getElementById(`servicio_estado_${index}`);
+        const servicioCategoria = document.getElementById(`servicio_categoria_${index}`);
+        const servicioPrioridad = document.getElementById(`servicio_prioridad_${index}`);
         
         // Solo validar si los campos son required
         if (destino?.required && (!destino.value || destino.value.trim() === "")) {
@@ -2770,10 +2812,13 @@ function validarCamposObligatorios() {
         if (servicio?.required && (!servicio.value || servicio.value.trim() === "")) {
           serviciosValidos = false;
         }
-        if (descripcion?.required && (!descripcion.value || descripcion.value.trim() === "")) {
+        if (estado?.required && (!estado.value || estado.value.trim() === "")) {
           serviciosValidos = false;
         }
-        if (estado?.required && (!estado.value || estado.value.trim() === "")) {
+        if (servicioCategoria?.required && (!servicioCategoria.value || servicioCategoria.value.trim() === "")) {
+          serviciosValidos = false;
+        }
+        if (servicioPrioridad?.required && (!servicioPrioridad.value || servicioPrioridad.value.trim() === "")) {
           serviciosValidos = false;
         }
       });
@@ -3411,6 +3456,7 @@ async function ejecutarCrearReserva() {
         const tipoHabitacion = document.getElementById("hotel_tipo_habitacion")?.value || "";
         const ciudad = document.getElementById("hotel_ciudad")?.value || "";
         const categoria = document.getElementById("hotel_categoria")?.value || null;
+        const prioridad = document.getElementById("hotel_prioridad")?.value || null;
         const hotelIn = document.getElementById("hotel_in")?.value || "";
         const hotelOut = document.getElementById("hotel_out")?.value || "";
         
@@ -3424,6 +3470,7 @@ async function ejecutarCrearReserva() {
           tipo_habitacion: tipoHabitacion,
           Ciudad: ciudad,
           Categoria: categoria || null,
+          Prioridad: prioridad || null,
           in: hotelIn,
           out: hotelOut
         };
@@ -3456,7 +3503,8 @@ async function ejecutarCrearReserva() {
             servicio: document.getElementById(`servicio_servicio_${index}`)?.value || "",
             descripcion: document.getElementById(`servicio_descripcion_${index}`)?.value || "",
             estado: document.getElementById(`servicio_estado_${index}`)?.value || "",
-            categoria: document.getElementById(`servicio_categoria_${index}`)?.value || ""
+            categoria: document.getElementById(`servicio_categoria_${index}`)?.value || "",
+            prioridad: document.getElementById(`servicio_prioridad_${index}`)?.value || ""
           });
         });
       }
@@ -3589,7 +3637,6 @@ async function ejecutarCrearReserva() {
           const nts = document.getElementById(`servicio_nts_${index}`);
           const basePax = document.getElementById(`servicio_basePax_${index}`);
           const servicioField = document.getElementById(`servicio_servicio_${index}`);
-          const descripcion = document.getElementById(`servicio_descripcion_${index}`);
           const estado = document.getElementById(`servicio_estado_${index}`);
           
           // Solo validar si los campos son required
@@ -3610,9 +3657,6 @@ async function ejecutarCrearReserva() {
           }
           if (servicioField?.required && (!servicio.servicio || servicio.servicio.trim() === "")) {
             camposFaltantes.push(`Servicio ${index + 1}: Servicio`);
-          }
-          if (descripcion?.required && (!servicio.descripcion || servicio.descripcion.trim() === "")) {
-            camposFaltantes.push(`Servicio ${index + 1}: Descripción`);
           }
           if (estado?.required && (!servicio.estado || servicio.estado.trim() === "")) {
             camposFaltantes.push(`Servicio ${index + 1}: Estado`);
