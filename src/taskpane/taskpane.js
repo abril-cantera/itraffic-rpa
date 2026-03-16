@@ -206,7 +206,7 @@ Office.onReady((info) => {
       }
       
       // Agregar event listeners para campos de reserva
-      const camposReserva = ['tipoReserva', 'estadoReserva', 'fechaViaje', 'vendedor', 'cliente'];
+      const camposReserva = ['tipoReserva', 'estadoReserva', 'fechaViaje', 'vendedor', 'cliente', 'moneda'];
       camposReserva.forEach(campoId => {
         const campo = document.getElementById(campoId);
         if (campo) {
@@ -2898,7 +2898,7 @@ function deshabilitarFormularios() {
   }
   
   // Deshabilitar campos de reserva
-  const camposReserva = ['tipoReserva', 'estadoReserva', 'fechaViaje', 'vendedor', 'cliente'];
+  const camposReserva = ['tipoReserva', 'estadoReserva', 'fechaViaje', 'vendedor', 'cliente', 'moneda'];
   camposReserva.forEach(campoId => {
     const campo = document.getElementById(campoId);
     if (campo) {
@@ -2975,7 +2975,7 @@ function resetearAplicacion() {
     setTimeout(() => {
       poblarSelectReserva();
       // Asegurar que los campos estén habilitados
-      const camposReserva = ['tipoReserva', 'estadoReserva', 'fechaViaje', 'vendedor', 'cliente'];
+      const camposReserva = ['tipoReserva', 'estadoReserva', 'fechaViaje', 'vendedor', 'cliente', 'moneda'];
       camposReserva.forEach(campoId => {
         const campo = document.getElementById(campoId);
         if (campo) {
@@ -2988,7 +2988,7 @@ function resetearAplicacion() {
     }, 100);
   } else {
     // Si no hay HTML original guardado, limpiar campos manualmente
-    const camposReserva = ['tipoReserva', 'estadoReserva', 'fechaViaje', 'vendedor', 'cliente'];
+    const camposReserva = ['tipoReserva', 'estadoReserva', 'fechaViaje', 'vendedor', 'cliente', 'moneda'];
     camposReserva.forEach(campoId => {
       const campo = document.getElementById(campoId);
       if (campo) {
@@ -3778,7 +3778,7 @@ function habilitarFormularios() {
   }
   
   // Habilitar campos de reserva
-  const camposReserva = ['tipoReserva', 'estadoReserva', 'fechaViaje', 'vendedor', 'cliente'];
+  const camposReserva = ['tipoReserva', 'estadoReserva', 'fechaViaje', 'vendedor', 'cliente', 'moneda'];
   camposReserva.forEach(campoId => {
     const campo = document.getElementById(campoId);
     if (campo) {
